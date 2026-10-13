@@ -138,4 +138,23 @@ python eval/judge.py
 ## Documentation
 
 For an in-depth first-principles breakdown of each layer, theoretical justifications (Information Entropy, Amdahl's Law, Attention Signal-to-Noise Ratio), and examiner viva defense questions, consult:
-- **[docs/EXPLANATIONS.md](docs/EXPLANATIONS.md)**
+- **[docs/EXPLANATIONS.md](docs/EXPLANATIONS.md)**: Architectural layer guide and component specifications.
+- **[docs/FIRST_PRINCIPLES_AND_TRADEOFFS.md](docs/FIRST_PRINCIPLES_AND_TRADEOFFS.md)**: Comprehensive chapter-by-chapter thesis guide detailing all mathematical first principles, engineering trade-offs, concurrency models, and viva defense strategies.
+
+---
+
+## Deploy to Streamlit Cloud
+
+To host this multi-agent deep research UI on Streamlit Community Cloud:
+
+1. Push this repo to GitHub (completed as detailed below).
+2. Go to [share.streamlit.io](https://share.streamlit.io) → Click **New app** → Pick repo (`aksh0777/projphase1aireserach`) → Branch `main` → Main file path: `app.py`.
+3. In the app **Settings** → **Secrets**, add your API key:
+   ```toml
+   GEMINI_API_KEY = "your-actual-gemini-key"
+   ```
+4. Add packages if deploy fails (check "Manage app" logs).
+5. Share the public URL.
+
+> **Note on Web Search in Cloud Environments:**  
+> DuckDuckGo search may be rate-limited from shared cloud hosting IP addresses; the app degrades gracefully and displays a warning with resilient evidence retrieval (this is expected behavior, not a bug).

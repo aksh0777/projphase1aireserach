@@ -1,10 +1,12 @@
-# Environment secrets
+# Environment secrets & credentials
 .env
 *.env.local
+.streamlit/secrets.toml
 
 # Python bytecode & cache
 __pycache__/
 *.py[cod]
+*.pyc
 *$py.class
 *.so
 .pytest_cache/
@@ -14,8 +16,12 @@ venv/
 .venv/
 env/
 
+# Demo trace outputs (reports are preserved)
+outputs/*.txt
+
 # IDE & OS files
 .vscode/
 .idea/
 .DS_Store
 Thumbs.db
+
