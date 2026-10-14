@@ -42,22 +42,44 @@ if "total_latency" not in st.session_state:
 
 # -------------------------------------------------------------
 # API Key Resolution
-# Read from st.secrets first, fall back to os.environ / .env
+# Read from st.secrets first, fall back to os.environ / .env / sidebar input
 # -------------------------------------------------------------
 api_key = None
 try:
     if hasattr(st, "secrets") and "GEMINI_API_KEY" in st.secrets:
-        api_key = st.secrets["GEMINI_API_KEY"]
+        api_key = str(st.secrets["GEMINI_API_KEY"]).strip()
 except Exception:
     pass
 
 if not api_key:
-    api_key = os.getenv("GEMINI_API_KEY")
+    api_key = os.getenv("GEMINI_API_KEY", "").strip()
 
-if api_key and str(api_key).strip():
-    os.environ["GEMINI_API_KEY"] = str(api_key).strip()
-else:
-    st.error("Add GEMINI_API_KEY to .streamlit/secrets.toml locally, or to Secrets on Streamlit Cloud.")
+# Sidebar API Key Input & Status
+with st.sidebar:
+    st.header("⚙️ Configuration")
+    if not api_key:
+        user_key_input = st.text_input(
+            "Gemini API Key:",
+            type="password",
+            placeholder="AIzaSy...",
+            help="Add your Gemini API key here, or save it permanently in Streamlit Cloud Secrets.",
+        )
+        if user_key_input.strip():
+            api_key = user_key_input.strip()
+            os.environ["GEMINI_API_KEY"] = api_key
+            st.success("✅ API Key configured for session!")
+        else:
+            st.caption("💡 Add `GEMINI_API_KEY` to **Manage app ➔ Settings ➔ Secrets**, or paste it above.")
+    else:
+        os.environ["GEMINI_API_KEY"] = api_key
+        st.success("✅ Gemini API Key connected")
+    st.divider()
+
+if not api_key:
+    st.info(
+        "💡 **API Key Setup:** To enable live research, add your `GEMINI_API_KEY` in the sidebar or under "
+        "**Manage app (bottom right) ➔ Settings ➔ Secrets**. If no key is set, the pipeline runs in resilient baseline mode."
+    )
 
 # Header
 st.title("Multi-Agent Deep Research — Baseline")
