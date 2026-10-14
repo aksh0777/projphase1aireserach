@@ -2,6 +2,12 @@
 
 An academic multi-agent deep research architecture built with **LangGraph**, **Gemini**, and **DuckDuckGo Search**. Designed for verifiable, transparent, and reproducible scientific synthesis.
 
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://projphase1aireserach.streamlit.app/)
+[![Deploy to Streamlit Cloud](https://img.shields.io/badge/Streamlit%20Cloud-1--Click%20Deploy-FF4B4B?style=flat&logo=streamlit&logoColor=white)](https://share.streamlit.io/deploy?repository=aksh0777/projphase1aireserach&branch=main&mainModule=app.py)
+
+🌐 **Live Streamlit App:** [https://projphase1aireserach.streamlit.app/](https://projphase1aireserach.streamlit.app/)  
+🚀 **1-Click Streamlit Deploy:** [Deploy on Streamlit Community Cloud](https://share.streamlit.io/deploy?repository=aksh0777/projphase1aireserach&branch=main&mainModule=app.py)
+
 > **Project Phase Scope:**  
 > This repository represents the **Phase 1 Baseline (Feed-Forward Pipeline)**:  
 > `Planner ➔ Parallel Researchers ➔ Synthesizer ➔ Writer ➔ Publication`.  
@@ -115,6 +121,16 @@ cp .env.example .env
 *(Optional: Add your `GEMINI_API_KEY` in `.env`. The system runs out-of-the-box with full resilient execution if running with placeholder credentials).*
 
 ### 3. Run Live Research Demo
+
+#### Option A: Interactive Web UI (Streamlit)
+Launch the reactive dashboard with real-time streaming agent node execution:
+```bash
+streamlit run app.py
+```
+Open your browser at `http://localhost:8501` to view live decomposed sub-questions, parallel researcher streams, synthesis briefs, and exportable reports.
+
+#### Option B: Headless Terminal CLI
+Run via terminal with live colored ASCII banners and automated trace logging:
 ```bash
 python main.py "Compare lithium-ion vs sodium-ion batteries for grid storage as of 2026"
 ```
@@ -140,21 +156,25 @@ python eval/judge.py
 For an in-depth first-principles breakdown of each layer, theoretical justifications (Information Entropy, Amdahl's Law, Attention Signal-to-Noise Ratio), and examiner viva defense questions, consult:
 - **[docs/EXPLANATIONS.md](docs/EXPLANATIONS.md)**: Architectural layer guide and component specifications.
 - **[docs/FIRST_PRINCIPLES_AND_TRADEOFFS.md](docs/FIRST_PRINCIPLES_AND_TRADEOFFS.md)**: Comprehensive chapter-by-chapter thesis guide detailing all mathematical first principles, engineering trade-offs, concurrency models, and viva defense strategies.
+- **[docs/PRESENTATION_DECK.md](docs/PRESENTATION_DECK.md)**: 15-slide academic presentation structure with slide-by-slide speaker scripts.
 
 ---
 
 ## Deploy to Streamlit Cloud
 
-To host this multi-agent deep research UI on Streamlit Community Cloud:
+The multi-agent deep research UI can be deployed directly to Streamlit Community Cloud:
 
-1. Push this repo to GitHub (completed as detailed below).
+- 🌐 **Live Demo URL:** [https://projphase1aireserach.streamlit.app/](https://projphase1aireserach.streamlit.app/)
+- ⚡ **1-Click Cloud Deployment:** [Deploy on Streamlit Community Cloud](https://share.streamlit.io/deploy?repository=aksh0777/projphase1aireserach&branch=main&mainModule=app.py)
+
+### Manual Setup Steps:
+1. Ensure this repo is pushed to GitHub (`aksh0777/projphase1aireserach`).
 2. Go to [share.streamlit.io](https://share.streamlit.io) → Click **New app** → Pick repo (`aksh0777/projphase1aireserach`) → Branch `main` → Main file path: `app.py`.
-3. In the app **Settings** → **Secrets**, add your API key:
+3. In the app **Settings** → **Secrets**, configure your API key:
    ```toml
    GEMINI_API_KEY = "your-actual-gemini-key"
    ```
-4. Add packages if deploy fails (check "Manage app" logs).
-5. Share the public URL.
+4. Click **Deploy!**
 
 > **Note on Web Search in Cloud Environments:**  
-> DuckDuckGo search may be rate-limited from shared cloud hosting IP addresses; the app degrades gracefully and displays a warning with resilient evidence retrieval (this is expected behavior, not a bug).
+> DuckDuckGo search may be rate-limited from shared cloud hosting IP addresses; the app degrades gracefully with resilient fallback retrieval and displays an informational banner.
