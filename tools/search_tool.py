@@ -12,12 +12,12 @@ import logging
 import time
 from typing import Any, Dict, List
 
-# Handle various duckduckgo_search distributions
+# Handle various duckduckgo_search distributions (prefer modern ddgs package)
 try:
-    from duckduckgo_search import DDGS
+    from ddgs import DDGS
 except ImportError:
     try:
-        from ddgs import DDGS  # type: ignore
+        from duckduckgo_search import DDGS  # type: ignore
     except ImportError:
         DDGS = None  # Handled gracefully at runtime
 

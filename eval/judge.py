@@ -15,12 +15,12 @@ import json
 import os
 import re
 import sys
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 # Ensure project root is in sys.path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from agents.llm import call_llm
+from agents.llm import call_llm, is_live_mode
 
 
 def _mock_judge_generator(report_text: str) -> str:
@@ -39,16 +39,28 @@ def _mock_judge_generator(report_text: str) -> str:
     })
 
 
-def evaluate_report(question: str, report_path: str) -> Dict[str, Any]:
+def evaluate_report(question: str, report_path: str) -> Optional[Dict[str, Any]]:
     """
     Score a research report across 4 dimensions (1-5) using LLM-as-a-Judge.
     Dimensions: Relevance, Completeness, Organization, Grounding.
+    Guards against scoring resilient/mock reports.
     """
+    # Guard 1: Verify system is in LIVE mode
+    if not is_live_mode():
+        print(f"[JUDGE] SKIPPED: mock run ({report_path} - LLM is not in LIVE mode)")
+        return None
+
     if not os.path.exists(report_path):
         raise FileNotFoundError(f"Report not found at: {report_path}")
 
     with open(report_path, "r", encoding="utf-8") as f:
         report_text = f.read()
+
+    # Guard 2: Verify report does not contain mock template boilerplate
+    mock_boilerplate = "Analysis of current empirical data reveals substantial differentiation across primary metrics"
+    if mock_boilerplate in report_text:
+        print(f"[JUDGE] SKIPPED: mock run ({report_path} contains resilient template text, refusing to score)")
+        return None
 
     system_instruction = (
         "You are an impartial academic journal referee. Evaluate the provided scientific research report "
@@ -91,8 +103,9 @@ def evaluate_report(question: str, report_path: str) -> Dict[str, Any]:
         if match:
             clean_content = match.group(0)
         score_data = json.loads(clean_content)
-    except Exception:
-        score_data = json.loads(_mock_judge_generator(report_text))
+    except Exception as exc:
+        print(f"[JUDGE ERROR] Could not parse LLM judge response: {exc}. Content was: {content[:150]}")
+        return None
 
     relevance = int(score_data.get("relevance", 4))
     completeness = int(score_data.get("completeness", 4))
@@ -158,27 +171,53 @@ def evaluate_report(question: str, report_path: str) -> Dict[str, Any]:
     return result
 
 
-def main():
-    report_path = None
-    question = None
+def evaluate_benchmark_runs(jsonl_path: str = "outputs/eval_runs.jsonl") -> List[Dict[str, Any]]:
+    """
+    Score all benchmark runs recorded in outputs/eval_runs.jsonl.
+    Maintains 1:1 question-to-report mapping and skips duplicates or mock runs.
+    """
+    if not os.path.exists(jsonl_path):
+        print(f"No benchmark runs file found at {jsonl_path}")
+        return []
 
+    with open(jsonl_path, "r", encoding="utf-8") as f:
+        records = [json.loads(line) for line in f if line.strip()]
+
+    print(f"\n[JUDGE] Found {len(records)} benchmark run records in {jsonl_path}")
+    results = []
+
+    # Map each question to its latest valid run
+    latest_by_question: Dict[str, Dict[str, Any]] = {}
+    for r in records:
+        q = r.get("question")
+        if q:
+            latest_by_question[q] = r
+
+    for q, r in latest_by_question.items():
+        rp = r.get("report_path")
+        if not rp or not os.path.exists(rp):
+            print(f"[JUDGE] Skipping question '{q}': report not found at {rp}")
+            continue
+
+        print(f"\n--- Judging Question: '{q}' ---")
+        res = evaluate_report(question=q, report_path=rp)
+        if res:
+            results.append(res)
+
+    print(f"\n[JUDGE COMPLETE] Evaluated {len(results)} reports successfully.")
+    return results
+
+
+def main():
     if len(sys.argv) >= 3:
         report_path = sys.argv[1]
         question = sys.argv[2]
-    elif len(sys.argv) == 2:
+        evaluate_report(question, report_path)
+    elif len(sys.argv) == 2 and sys.argv[1] not in ("--all", "-a"):
         report_path = sys.argv[1]
-        question = "Lithium-ion vs Sodium-ion batteries for grid storage"
+        evaluate_report("General Research Evaluation", report_path)
     else:
-        # Auto-detect latest report from outputs/
-        reports = sorted(glob.glob(os.path.join("outputs", "report_*.md")))
-        if reports:
-            report_path = reports[-1]
-            question = "Compare lithium-ion vs sodium-ion batteries for grid storage as of 2026"
-        else:
-            print("No reports found in outputs/ to evaluate. Please provide a path.")
-            return
-
-    evaluate_report(question, report_path)
+        evaluate_benchmark_runs()
 
 
 if __name__ == "__main__":

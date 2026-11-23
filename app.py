@@ -13,6 +13,8 @@ import time
 from typing import Any, Dict, List
 import streamlit as st
 
+from agents.llm import is_placeholder_key
+
 # Configure page settings
 st.set_page_config(
     page_title="Multi-Agent Deep Research — Baseline",
@@ -45,18 +47,31 @@ if "total_latency" not in st.session_state:
 # Read from st.secrets first, fall back to os.environ / .env / sidebar input
 # -------------------------------------------------------------
 api_key = None
+raw_key = None
+placeholder_detected = False
+
 try:
     if hasattr(st, "secrets") and "GEMINI_API_KEY" in st.secrets:
-        api_key = str(st.secrets["GEMINI_API_KEY"]).strip()
+        raw_key = str(st.secrets["GEMINI_API_KEY"]).strip()
 except Exception:
     pass
 
-if not api_key:
-    api_key = os.getenv("GEMINI_API_KEY", "").strip()
+if not raw_key:
+    raw_key = os.getenv("GEMINI_API_KEY", "").strip()
+
+if raw_key:
+    if is_placeholder_key(raw_key):
+        placeholder_detected = True
+        api_key = None
+    else:
+        api_key = raw_key
 
 # Sidebar API Key Input & Status
 with st.sidebar:
     st.header("⚙️ Configuration")
+    if placeholder_detected:
+        st.warning("⚠️ Placeholder key detected — add your real GEMINI_API_KEY to .env or sidebar")
+
     if not api_key:
         user_key_input = st.text_input(
             "Gemini API Key:",
@@ -65,9 +80,13 @@ with st.sidebar:
             help="Add your Gemini API key here, or save it permanently in Streamlit Cloud Secrets.",
         )
         if user_key_input.strip():
-            api_key = user_key_input.strip()
-            os.environ["GEMINI_API_KEY"] = api_key
-            st.success("✅ API Key configured for session!")
+            if is_placeholder_key(user_key_input.strip()):
+                st.error("⚠️ The entered key is a placeholder string. Please enter a real Gemini API key.")
+            else:
+                api_key = user_key_input.strip()
+                os.environ["GEMINI_API_KEY"] = api_key
+                st.success("✅ API Key configured for session!")
+                st.rerun()
         else:
             st.caption("💡 Add `GEMINI_API_KEY` to **Manage app ➔ Settings ➔ Secrets**, or paste it above.")
     else:
@@ -75,15 +94,22 @@ with st.sidebar:
         st.success("✅ Gemini API Key connected")
     st.divider()
 
-if not api_key:
-    st.info(
-        "💡 **API Key Setup:** To enable live research, add your `GEMINI_API_KEY` in the sidebar or under "
-        "**Manage app (bottom right) ➔ Settings ➔ Secrets**. If no key is set, the pipeline runs in resilient baseline mode."
-    )
-
 # Header
 st.title("Multi-Agent Deep Research — Baseline")
 st.caption("Planner → Researchers (parallel) → Synthesizer → Writer · Built with LangGraph + Gemini")
+
+# System Execution Mode Banner (IMPOSSIBLE TO MISS)
+is_live_run = bool(api_key and not is_placeholder_key(api_key))
+if is_live_run:
+    st.success(
+        "🟢 **SYSTEM EXECUTION MODE: LIVE (Gemini active)**  \n"
+        "Real-time LLM reasoning & web retrieval will execute against live Google Gemini endpoints."
+    )
+else:
+    st.warning(
+        "🟠 **SYSTEM EXECUTION MODE: RESILIENT (Mock fallback)**  \n"
+        "No active Gemini key detected. Running in deterministic mock generator mode. Add your key above for live research."
+    )
 
 # -------------------------------------------------------------
 # Topic Input & Controls

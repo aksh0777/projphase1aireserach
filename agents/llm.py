@@ -12,12 +12,15 @@ import json
 import logging
 import os
 import re
+import time
 from typing import Any, Dict, List, Optional, Tuple, Union
 from dotenv import load_dotenv
 
 load_dotenv()
 
 logger = logging.getLogger("LLM")
+
+_BANNER_PRINTED = False
 
 
 def is_placeholder_key(key: Optional[str]) -> bool:
@@ -27,12 +30,35 @@ def is_placeholder_key(key: Optional[str]) -> bool:
     cleaned = key.strip().lower()
     return (
         cleaned == ""
+        or cleaned.startswith("your")
         or "placeholder" in cleaned
         or "your_gemini_api_key" in cleaned
         or "your_key" in cleaned
+        or "your-key" in cleaned
         or "dummy" in cleaned
         or len(cleaned) < 15
     )
+
+
+def is_live_mode() -> bool:
+    """Check whether the system has a valid live Gemini API key configured."""
+    api_key = os.getenv("GEMINI_API_KEY")
+    return not is_placeholder_key(api_key)
+
+
+def print_mode_banner():
+    """Print a loud one-time console banner stating whether LIVE or RESILIENT mode is active."""
+    global _BANNER_PRINTED
+    if not _BANNER_PRINTED:
+        if is_live_mode():
+            print("\n" + "=" * 64)
+            print(">>> MODE: LIVE (Gemini active) <<<")
+            print("=" * 64 + "\n")
+        else:
+            print("\n" + "!" * 64)
+            print(">>> MODE: RESILIENT (mock generators — no real API key) <<<")
+            print("!" * 64 + "\n")
+        _BANNER_PRINTED = True
 
 
 def estimate_tokens(text: str) -> int:
@@ -51,7 +77,11 @@ def get_llm():
 
     try:
         from langchain_google_genai import ChatGoogleGenerativeAI
-        model_name = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
+        model_name = os.getenv("GEMINI_MODEL", "gemini-3.5-flash")
+        # Upgrade deprecated 2.5-flash to 3.5-flash if encountered
+        if "2.5-flash" in model_name:
+            model_name = "gemini-3.5-flash"
+
         return ChatGoogleGenerativeAI(
             model=model_name,
             google_api_key=api_key,
@@ -71,38 +101,53 @@ def call_llm(
     Unified LLM invocation function.
     Returns: (generated_text, token_usage_dict)
     """
+    print_mode_banner()
     llm = get_llm()
     prompt_tokens = estimate_tokens(prompt + (system_instruction or ""))
 
     if llm is not None:
-        try:
-            from langchain_core.messages import HumanMessage, SystemMessage
-            messages = []
-            if system_instruction:
-                messages.append(SystemMessage(content=system_instruction))
-            messages.append(HumanMessage(content=prompt))
+        for attempt in range(1, 4):
+            try:
+                from langchain_core.messages import HumanMessage, SystemMessage
+                messages = []
+                if system_instruction:
+                    messages.append(SystemMessage(content=system_instruction))
+                messages.append(HumanMessage(content=prompt))
 
-            response = llm.invoke(messages)
-            content = response.content
-            if isinstance(content, list):
-                # In case multimodal blocks are returned
-                content = "\n".join([str(c) for c in content])
-            content = str(content).strip()
+                response = llm.invoke(messages)
+                content = response.content
+                if isinstance(content, list):
+                    # Handle multimodal or structured block list
+                    parts = []
+                    for c in content:
+                        if isinstance(c, dict) and "text" in c:
+                            parts.append(c["text"])
+                        elif hasattr(c, "text"):
+                            parts.append(c.text)
+                        else:
+                            parts.append(str(c))
+                    content = "\n".join(parts)
+                content = str(content).strip()
 
-            completion_tokens = estimate_tokens(content)
-            # Check for usage metadata if provided by provider
-            if hasattr(response, "usage_metadata") and response.usage_metadata:
-                usage = response.usage_metadata
-                prompt_tokens = usage.get("input_tokens", prompt_tokens)
-                completion_tokens = usage.get("output_tokens", completion_tokens)
+                completion_tokens = estimate_tokens(content)
+                # Check for usage metadata if provided by provider
+                if hasattr(response, "usage_metadata") and response.usage_metadata:
+                    usage = response.usage_metadata
+                    prompt_tokens = usage.get("input_tokens", prompt_tokens)
+                    completion_tokens = usage.get("output_tokens", completion_tokens)
 
-            return content, {
-                "prompt_tokens": prompt_tokens,
-                "completion_tokens": completion_tokens,
-                "total_tokens": prompt_tokens + completion_tokens,
-            }
-        except Exception as exc:
-            logger.warning("Live LLM invocation error: %s. Switching to resilient generator.", exc)
+                return content, {
+                    "prompt_tokens": prompt_tokens,
+                    "completion_tokens": completion_tokens,
+                    "total_tokens": prompt_tokens + completion_tokens,
+                }
+            except Exception as exc:
+                if attempt < 3:
+                    wait_sec = attempt * 2
+                    logger.warning("Live LLM error (attempt %d/3): %s. Retrying in %ds...", attempt, exc, wait_sec)
+                    time.sleep(wait_sec)
+                else:
+                    logger.warning("Live LLM error after 3 attempts: %s. Switching to resilient generator.", exc)
 
     # Resilient generator fallback
     if mock_generator:
