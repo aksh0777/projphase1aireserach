@@ -30,9 +30,20 @@ def merge_dicts(left: Dict[str, Any], right: Dict[str, Any]) -> Dict[str, Any]:
     return merged
 
 
+def append_score_history(left: Any, right: Any) -> List[Dict[str, Any]]:
+    """Reducer function to accumulate iteration critique scores."""
+    res = list(left or [])
+    if isinstance(right, list):
+        res.extend(right)
+    elif isinstance(right, dict):
+        res.append(right)
+    return res
+
+
 class ResearchState(TypedDict):
     """
     Central shared state passed between all nodes in the LangGraph workflow.
+    Supports both Phase 1 baseline feed-forward and Phase 2 critic-revision loops.
     """
     # The primary user query / topic
     question: str
@@ -51,6 +62,19 @@ class ResearchState(TypedDict):
 
     # Final formatted markdown report with inline citations and references
     report: str
+
+    # --- Phase 2 State Extensions (Critic & Revision Loop) ---
+    # Current working draft of the report during revision iterations
+    draft: str
+
+    # Latest structured critique dictionary produced by the Critic agent
+    critique: Dict[str, Any]
+
+    # Counter tracking the number of revision passes completed (0 = initial draft)
+    revision_count: int
+
+    # Chronological history of all critique dictionaries produced across iterations
+    score_history: Annotated[List[Dict[str, Any]], append_score_history]
 
     # Runtime operational metrics (latency per node, token counts, search count)
     metadata: Annotated[Dict[str, Any], merge_dicts]

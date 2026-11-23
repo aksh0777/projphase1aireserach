@@ -1,9 +1,10 @@
 """
-Streamlit Demo UI for Multi-Agent Deep Research System (Baseline)
+Streamlit Demo UI for Multi-Agent Deep Research System
 Architecture Reference: docs/EXPLANATIONS.md
 
-This module provides a live interactive interface to visualize the feed-forward multi-agent graph:
-Planner -> Parallel Researchers -> Synthesizer -> Writer.
+Interactive interface supporting:
+- Phase 1: Baseline Feed-Forward DAG (Planner -> Researchers -> Synthesizer -> Writer)
+- Phase 2: Closed-Loop System with Critic + Revision Loop
 """
 
 from datetime import datetime
@@ -17,7 +18,7 @@ from agents.llm import is_placeholder_key
 
 # Configure page settings
 st.set_page_config(
-    page_title="Multi-Agent Deep Research — Baseline",
+    page_title="Multi-Agent Deep Research — Phase 1 & 2",
     layout="wide",
     page_icon="🔬",
 )
@@ -41,10 +42,11 @@ if "topic" not in st.session_state:
     st.session_state.topic = "Compare lithium-ion vs sodium-ion batteries for grid storage as of 2026"
 if "total_latency" not in st.session_state:
     st.session_state.total_latency = 0.0
+if "use_critic" not in st.session_state:
+    st.session_state.use_critic = True
 
 # -------------------------------------------------------------
 # API Key Resolution
-# Read from st.secrets first, fall back to os.environ / .env / sidebar input
 # -------------------------------------------------------------
 api_key = None
 raw_key = None
@@ -66,9 +68,22 @@ if raw_key:
     else:
         api_key = raw_key
 
-# Sidebar API Key Input & Status
+# Sidebar Configuration
 with st.sidebar:
     st.header("⚙️ Configuration")
+
+    # Architecture Mode Selection (Phase 1 vs Phase 2 Toggle)
+    mode_selection = st.radio(
+        "Architecture Mode:",
+        ["Baseline (Phase 1)", "Improved with Critic Loop (Phase 2)"],
+        index=1 if st.session_state.use_critic else 0,
+        help="Switch between Phase 1 feed-forward pipeline and Phase 2 closed-loop adversarial critique.",
+    )
+    with_critic = (mode_selection == "Improved with Critic Loop (Phase 2)")
+    st.session_state.use_critic = with_critic
+
+    st.divider()
+
     if placeholder_detected:
         st.warning("⚠️ Placeholder key detected — add your real GEMINI_API_KEY to .env or sidebar")
 
@@ -92,18 +107,22 @@ with st.sidebar:
     else:
         os.environ["GEMINI_API_KEY"] = api_key
         st.success("✅ Gemini API Key connected")
+
     st.divider()
 
 # Header
-st.title("Multi-Agent Deep Research — Baseline")
-st.caption("Planner → Researchers (parallel) → Synthesizer → Writer · Built with LangGraph + Gemini")
+st.title("Multi-Agent Deep Research System")
+if with_critic:
+    st.caption("🚀 **Phase 2 Architecture:** Planner → Researchers (parallel) → Synthesizer → Writer → **Critic ⇄ Reviser Loop**")
+else:
+    st.caption("🔬 **Phase 1 Architecture:** Planner → Researchers (parallel) → Synthesizer → Writer (Strict Feed-Forward DAG)")
 
 # System Execution Mode Banner (IMPOSSIBLE TO MISS)
 is_live_run = bool(api_key and not is_placeholder_key(api_key))
 if is_live_run:
     st.success(
         "🟢 **SYSTEM EXECUTION MODE: LIVE (Gemini active)**  \n"
-        "Real-time LLM reasoning & web retrieval will execute against live Google Gemini endpoints."
+        f"All agents will execute against live Google Gemini endpoints using `{with_critic and 'Phase 2 Closed Loop' or 'Phase 1 Feed-Forward'}`."
     )
 else:
     st.warning(
@@ -134,7 +153,7 @@ with btn_col:
         use_container_width=True,
     )
 
-# Clear / New Run Button if report already generated
+# Clear / New Run Button
 if st.session_state.report and not st.session_state.is_running:
     if st.button("🔄 Run Another Topic", use_container_width=False):
         st.session_state.report = None
@@ -162,11 +181,10 @@ if run_btn:
     overall_start = time.perf_counter()
 
     try:
-        # Import existing compiled graph without modifying backend
-        from graph.builder import build_research_graph
+        from graph.builder import build_baseline_graph, build_improved_graph
         from state import ResearchState
 
-        graph = build_research_graph()
+        graph = build_improved_graph() if with_critic else build_baseline_graph()
 
         initial_state: ResearchState = {
             "question": st.session_state.topic,
@@ -175,21 +193,27 @@ if run_btn:
             "notes": {},
             "brief": "",
             "report": "",
+            "draft": "",
+            "critique": {},
+            "revision_count": 0,
+            "score_history": [],
             "metadata": {"search_count": 0},
         }
 
         run_id = f"st_run_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
 
         st.subheader("Live Agent Workflow Execution")
+        if is_live_run:
+            st.info(f"🚀 Launching in **LIVE MODE** with Gemini LLM ({'Phase 2 Critic Loop' if with_critic else 'Phase 1 Baseline'}).")
+        else:
+            st.warning("⚠️ Launching in **RESILIENT MODE** with mock generators.")
 
-        # Layer 1: Planner Status
+        # Status Layers
         planner_status = st.status("🧠 [1] Planner: Decomposing research topic...", expanded=True)
-        # Layer 2: Researchers Status
         researcher_status = st.status("🔍 [2] Researchers: Awaiting plan...", expanded=False)
-        # Layer 3: Synthesizer Status
         synthesizer_status = st.status("📑 [3] Synthesizer: Awaiting research notes...", expanded=False)
-        # Layer 4: Writer Status
         writer_status = st.status("✍️ [4] Writer: Awaiting synthesis brief...", expanded=False)
+        critic_status = st.status("⚖️ [5] Critic & Revision Loop: Awaiting initial draft...", expanded=False) if with_critic else None
 
         plan: List[str] = []
         accumulated_notes: Dict[str, List[str]] = {}
@@ -201,7 +225,7 @@ if run_btn:
             config={"configurable": {"thread_id": run_id}},
             stream_mode="updates",
         ):
-            # Check for Planner output
+            # Planner
             if "planner" in event:
                 plan = event["planner"].get("plan", [])
                 st.session_state.plan = plan
@@ -217,14 +241,13 @@ if run_btn:
                     state="complete",
                     expanded=False,
                 )
-
                 researcher_status.update(
                     label=f"🔍 [2] Researchers: Executing {len(plan)} parallel streams...",
                     state="running",
                     expanded=True,
                 )
 
-            # Check for Researcher output
+            # Researcher
             if "researcher" in event:
                 r_notes = event["researcher"].get("notes", {})
                 r_results = event["researcher"].get("search_results", {})
@@ -254,7 +277,7 @@ if run_btn:
                         expanded=True,
                     )
 
-            # Check for Synthesizer output
+            # Synthesizer
             if "synthesizer" in event:
                 brief = event["synthesizer"].get("brief", "")
                 st.session_state.brief = brief
@@ -274,14 +297,73 @@ if run_btn:
                     expanded=True,
                 )
 
-            # Check for Writer output
+            # Writer
             if "writer" in event:
-                report_md = event["writer"].get("report", "")
-                st.session_state.report = report_md
+                draft_md = event["writer"].get("draft") or event["writer"].get("report", "")
+                st.session_state.report = draft_md
                 accumulated_meta.update(event["writer"].get("metadata", {}))
 
                 writer_status.update(
-                    label="✅ [4] Writer: Final report drafted with full inline citations",
+                    label="✅ [4] Writer: Initial report drafted with full inline citations",
+                    state="complete",
+                    expanded=False,
+                )
+                if with_critic and critic_status:
+                    critic_status.update(
+                        label="⚖️ [5] Critic: Initiating independent peer review...",
+                        state="running",
+                        expanded=True,
+                    )
+
+            # Phase 2: Critic Node
+            if "critic" in event and with_critic and critic_status:
+                c_data = event["critic"].get("critique", {})
+                iter_num = c_data.get("iteration", 1)
+                scores = c_data.get("scores", {})
+                verdict = str(c_data.get("verdict", "revise")).upper()
+                flaws = c_data.get("flaws", [])
+                accumulated_meta.update(event["critic"].get("metadata", {}))
+
+                with critic_status:
+                    with st.expander(f"🔎 Peer Review Iteration {iter_num} [{verdict}]", expanded=True):
+                        st.markdown(f"**Verdict:** `{verdict}`")
+                        col1, col2, col3, col4 = st.columns(4)
+                        col1.metric("Relevance", f"{scores.get('relevance', 0)}/5")
+                        col2.metric("Completeness", f"{scores.get('completeness', 0)}/5")
+                        col3.metric("Organization", f"{scores.get('organization', 0)}/5")
+                        col4.metric("Grounding", f"{scores.get('grounding', 0)}/5")
+
+                        if flaws:
+                            st.write("**Actionable Flaws Identified:**")
+                            for f in flaws:
+                                st.markdown(f"- ⚠️ {f}")
+                        else:
+                            st.success("✅ Flaw checklist cleared — ready for publication.")
+
+                critic_status.update(
+                    label=f"⚖️ [5] Critic: Iteration {iter_num} finished ({verdict})",
+                    state="running",
+                    expanded=True,
+                )
+
+            # Phase 2: Reviser Node
+            if "reviser" in event and with_critic and critic_status:
+                rev_draft = event["reviser"].get("draft", "")
+                rev_num = event["reviser"].get("revision_count", 1)
+                st.session_state.report = rev_draft
+                accumulated_meta.update(event["reviser"].get("metadata", {}))
+
+                with critic_status:
+                    st.info(f"✍️ **Reviser Iteration {rev_num}:** Refined draft generated ({len(rev_draft)} chars). Returning to Critic for verification...")
+
+            # Phase 2: Finalize Node
+            if "finalize" in event and with_critic and critic_status:
+                final_md = event["finalize"].get("report", "")
+                st.session_state.report = final_md
+                accumulated_meta.update(event["finalize"].get("metadata", {}))
+
+                critic_status.update(
+                    label=f"✅ [5] Critic Loop: Converged and finalized after {accumulated_meta.get('iterations_used', 1)} iteration(s)",
                     state="complete",
                     expanded=False,
                 )
@@ -306,9 +388,8 @@ if st.session_state.report:
     st.divider()
     st.subheader("📄 Generated Research Report")
 
-    # Clean topic slug for download filename
     slug = re.sub(r"[^a-zA-Z0-9_\-]+", "_", st.session_state.topic.lower()).strip("_")[:40] or "report"
-    filename = f"report_{slug}.md"
+    filename = f"report_{'phase2' if with_critic else 'phase1'}_{slug}.md"
 
     download_col, _ = st.columns([2, 5])
     with download_col:
@@ -320,7 +401,6 @@ if st.session_state.report:
             use_container_width=True,
         )
 
-    # Render report markdown
     st.markdown(st.session_state.report)
 
 # -------------------------------------------------------------
@@ -332,12 +412,9 @@ with st.sidebar:
 
     if st.session_state.metadata or st.session_state.total_latency > 0:
         meta = st.session_state.metadata
-
-        # Total latency
         total_lat = st.session_state.total_latency
         st.metric("Total Latency", f"{total_lat:.2f} s")
 
-        # Total Tokens
         token_sum = sum([
             v for k, v in meta.items()
             if isinstance(v, int) and ("token" in k)
@@ -346,19 +423,20 @@ with st.sidebar:
             token_sum = max(1200, int(total_lat * 180))
         st.metric("Total Tokens", f"{token_sum:,}")
 
-        # Search calls
         searches = meta.get("search_count", len(st.session_state.plan) or 4)
         st.metric("Searches Executed", f"{searches}")
+
+        if with_critic:
+            iters = meta.get("iterations_used", 0)
+            st.metric("Critic Iterations Used", f"{iters}")
 
         st.divider()
         st.subheader("⏱️ Latency Per Node")
 
-        # Node latencies
         planner_lat = meta.get("latency_planner", 0.0)
         synth_lat = meta.get("latency_synthesizer", 0.0)
         writer_lat = meta.get("latency_writer", 0.0)
 
-        # Researcher latencies
         res_latencies = [
             v for k, v in meta.items()
             if k.startswith("latency_researcher") and isinstance(v, (int, float))
@@ -371,6 +449,12 @@ with st.sidebar:
         st.markdown(f"- **Synthesizer**: `{synth_lat:.2f} s`")
         st.markdown(f"- **Writer**: `{writer_lat:.2f} s`")
 
+        if with_critic:
+            for k, v in sorted(meta.items()):
+                if (k.startswith("latency_critic") or k.startswith("latency_reviser")) and isinstance(v, (int, float)):
+                    label = k.replace("latency_", "").replace("_", " ").title()
+                    st.markdown(f"- **{label}**: `{v:.2f} s`")
+
         if meta.get("report_path"):
             st.divider()
             st.caption(f"Saved disk artifact:\n`{meta['report_path']}`")
@@ -378,4 +462,4 @@ with st.sidebar:
         st.info("Run a research topic to view live node latencies, token consumption, and search counts.")
 
     st.divider()
-    st.caption("Baseline Phase 1 · Scope: Feed-forward DAG (No critic / revision loop)")
+    st.caption("Multi-Agent Deep Research System · Phase 1 Baseline & Phase 2 Critic Loop")

@@ -532,3 +532,52 @@ Via the Blackboard Reducer pattern (`merge_dicts`). Instead of allowing parallel
 The primary bottleneck is external I/O latency from web retrieval and LLM inference. In a sequential design, total latency is $O(\sum_{i=1}^k T_i)$. By utilizing LangGraph's dynamic `Send` mapping, all sub-question retrievals occur in parallel, reducing execution time to $\max(T_i) + \text{synthesis latency}$, directly exploiting Amdahl's Law.
 
 ---
+
+## 12. Phase 2: The Critic & Iterative Revision Architecture
+
+### (a) Epistemic Need for Closed-Loop Verification
+In the Phase 1 feed-forward pipeline, generation errors committed by the Writer agent are terminal: no mechanism exists to identify structural gaps, unsupported quantitative assertions, or format degradation before publication. 
+
+Phase 2 transforms the open-loop DAG into a **closed-loop state machine** with adversarial critique and iterative refinement.
+
+```
+                      +-----------------------------+
+                      |         Writer Node         |
+                      |  Produces initial draft     |
+                      +-----------------------------+
+                                     |
+                                     v
+                      +-----------------------------+
+               +----> |         Critic Node         | <---+
+               |      |  Independent Peer Review    |     |
+               |      +-----------------------------+     |
+               |                     |                    |
+               |                     v                    |
+               |            [Routing Condition]           |
+               |            - Verdict == "pass"?          |
+               |            - Revisions >= 3?             |
+               |             /             \              |
+            Revise        Pass              Cap Exceeded  |
+               |           /                 \            |
+               |          v                   v           |
+      +-----------------+   +-----------------------+     |
+      |   Reviser Node  |   |    Final Report END   |     |
+      | Refines draft   |   | (report = best draft) |     |
+      +-----------------+   +-----------------------+     |
+               |                                          |
+               +------------------------------------------+
+```
+
+### (b) State Extensions and Reducers
+To govern the feedback loop without state clobbering, `ResearchState` is augmented with four dedicated attributes:
+1. **`draft: str`**: The active mutable report draft under refinement. The Writer initializes `draft`; the Reviser progressively mutates it. `report` is assigned only upon loop termination.
+2. **`critique: Dict[str, Any]`**: The latest evaluation payload emitted by the Critic, containing normalized multi-dimensional rubric scores (1–5), justifications, specific actionable flaws, and the final pass/revise verdict.
+3. **`revision_count: int`**: A monotonic counter tracking the loop iterations ($0, 1, 2, \dots, \text{MAX\_REVISIONS}$). Guarantees finite convergence and prevents infinite cycling.
+4. **`score_history: List[Dict[str, Any]]`**: Accumulated using the `append_score_history` reducer. Retains the longitudinal trajectory of peer-review scores across every iteration, enabling quantitative auditability of refinement convergence.
+
+### (c) Adversarial Isolation
+A fundamental design choice in the Critic agent is **strict informational isolation**:
+- The Critic receives *only* the original research question and the current draft report.
+- The Critic is **blind** to the search notes, raw retrieval snippets, and the planner's initial plan.
+This prevents confirmation bias: the reviewer cannot give credit for retrieved evidence that failed to be articulated in the final text. The report must succeed purely on its standalone communicative and empirical merits.
+

@@ -1,0 +1,2 @@
+Question,Report_Path,Relevance,Completeness,Organization,Grounding,Mean_Score,Justification
+Compare lithium-ion vs sodium-ion batteries for grid storage as of 2026,outputs\report_20261123_133549.md,5,4,4,4,4.25,"The report provides a highly relevant and detailed comparative analysis across technical, economic, and operational dimensions, but it cuts off abruptly mid-sentence at the end and lacks an explicit reference list matching its in-text citations."

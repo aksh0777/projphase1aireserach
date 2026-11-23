@@ -164,6 +164,7 @@ def write_report(state: ResearchState) -> Dict[str, Any]:
 
     return {
         "report": content.strip(),
+        "draft": content.strip(),
         "metadata": {
             "tokens_writer": tokens["total_tokens"],
             "report_path": report_path,

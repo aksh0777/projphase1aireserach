@@ -39,7 +39,7 @@ def _mock_judge_generator(report_text: str) -> str:
     })
 
 
-def evaluate_report(question: str, report_path: str) -> Optional[Dict[str, Any]]:
+def evaluate_report(question: str, report_path: str, csv_path: Optional[str] = None) -> Optional[Dict[str, Any]]:
     """
     Score a research report across 4 dimensions (1-5) using LLM-as-a-Judge.
     Dimensions: Relevance, Completeness, Organization, Grounding.
@@ -125,12 +125,12 @@ def evaluate_report(question: str, report_path: str) -> Optional[Dict[str, Any]]
         "justification": justification,
     }
 
-    # Save to outputs/eval_results.csv
+    # Save to CSV
     os.makedirs("outputs", exist_ok=True)
-    csv_path = os.path.join("outputs", "eval_results.csv")
-    file_exists = os.path.exists(csv_path)
+    target_csv = csv_path or os.path.join("outputs", "eval_results.csv")
+    file_exists = os.path.exists(target_csv)
 
-    with open(csv_path, "a", newline="", encoding="utf-8") as f:
+    with open(target_csv, "a", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
         if not file_exists:
             writer.writerow([
@@ -165,15 +165,18 @@ def evaluate_report(question: str, report_path: str) -> Optional[Dict[str, Any]]
     print(f"  • Grounding:    {grounding} / 5")
     print(f"  • Mean Score:   {mean_score} / 5.0")
     print(f"Justification:    {justification}")
-    print(f"Appended to:      {csv_path}")
+    print(f"Appended to:      {target_csv}")
     print("=" * 60 + "\n")
 
     return result
 
 
-def evaluate_benchmark_runs(jsonl_path: str = "outputs/eval_runs.jsonl") -> List[Dict[str, Any]]:
+def evaluate_benchmark_runs(
+    jsonl_path: str = "outputs/eval_runs.jsonl",
+    csv_path: Optional[str] = None,
+) -> List[Dict[str, Any]]:
     """
-    Score all benchmark runs recorded in outputs/eval_runs.jsonl.
+    Score all benchmark runs recorded in jsonl_path.
     Maintains 1:1 question-to-report mapping and skips duplicates or mock runs.
     """
     if not os.path.exists(jsonl_path):
@@ -193,6 +196,8 @@ def evaluate_benchmark_runs(jsonl_path: str = "outputs/eval_runs.jsonl") -> List
         if q:
             latest_by_question[q] = r
 
+    target_csv = csv_path or os.path.join("outputs", "eval_results.csv")
+
     for q, r in latest_by_question.items():
         rp = r.get("report_path")
         if not rp or not os.path.exists(rp):
@@ -200,24 +205,34 @@ def evaluate_benchmark_runs(jsonl_path: str = "outputs/eval_runs.jsonl") -> List
             continue
 
         print(f"\n--- Judging Question: '{q}' ---")
-        res = evaluate_report(question=q, report_path=rp)
+        res = evaluate_report(question=q, report_path=rp, csv_path=target_csv)
         if res:
             results.append(res)
 
-    print(f"\n[JUDGE COMPLETE] Evaluated {len(results)} reports successfully.")
+    print(f"\n[JUDGE COMPLETE] Evaluated {len(results)} reports successfully into {target_csv}.")
     return results
 
 
 def main():
-    if len(sys.argv) >= 3:
-        report_path = sys.argv[1]
-        question = sys.argv[2]
-        evaluate_report(question, report_path)
-    elif len(sys.argv) == 2 and sys.argv[1] not in ("--all", "-a"):
-        report_path = sys.argv[1]
-        evaluate_report("General Research Evaluation", report_path)
+    phase2 = "--phase2" in sys.argv
+    cleaned_args = [a for a in sys.argv[1:] if a != "--phase2"]
+
+    if phase2:
+        jsonl_path = "outputs/eval_runs_phase2.jsonl"
+        csv_path = "outputs/eval_results_phase2.csv"
     else:
-        evaluate_benchmark_runs()
+        jsonl_path = "outputs/eval_runs.jsonl"
+        csv_path = "outputs/eval_results.csv"
+
+    if len(cleaned_args) >= 2:
+        report_path = cleaned_args[0]
+        question = cleaned_args[1]
+        evaluate_report(question, report_path, csv_path=csv_path)
+    elif len(cleaned_args) == 1 and cleaned_args[0] not in ("--all", "-a"):
+        report_path = cleaned_args[0]
+        evaluate_report("General Research Evaluation", report_path, csv_path=csv_path)
+    else:
+        evaluate_benchmark_runs(jsonl_path=jsonl_path, csv_path=csv_path)
 
 
 if __name__ == "__main__":
