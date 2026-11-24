@@ -581,3 +581,39 @@ A fundamental design choice in the Critic agent is **strict informational isolat
 - The Critic is **blind** to the search notes, raw retrieval snippets, and the planner's initial plan.
 This prevents confirmation bias: the reviewer cannot give credit for retrieved evidence that failed to be articulated in the final text. The report must succeed purely on its standalone communicative and empirical merits.
 
+---
+
+## 13. Phase 2.2: Research Reliability, Execution Isolation, and Evaluation Dashboard
+
+### (a) Root Cause Analysis of Cross-Topic Contamination
+In the deployed Streamlit application, executing a cricket inquiry (*"MS Dhoni vs Virat Kohli"*) occasionally yielded battery-related sections (*"manufacturing maturity, raw material availability, cell-level operational characteristics"*).
+Rigorous tracing revealed the exact causal sequence:
+1. Under free-tier Google AI Studio daily limits (20 requests per day per model), live LLM calls hit HTTP 429 `RESOURCE_EXHAUSTED`.
+2. In `agents/llm.py`, when live retry attempts failed, the module silently invoked `mock_generator`.
+3. In `agents/writer.py`, `_mock_report_generator` contained hardcoded domain sentences written during early battery testing (*"Analysis of current empirical data reveals substantial differentiation across primary metrics... levelized degradation when operated under standardized grid charge-discharge regimens"*).
+4. Similarly, `agents/researcher.py` and `tools/search_tool.py` generated simulated battery URLs (`energy-storage-review.org`, `bloomberg-energy.com/bess-cost-parity`).
+Consequently, when any live API call failed mid-run, domain-specific mock text was silently injected into the draft, contaminating the report.
+
+### (b) Execution Isolation Architecture
+To guarantee that no prior execution can contaminate a new inquiry:
+1. **Per-Run Identity**: Every run receives a unique, sortable `run_id` (e.g., `run_20261124T040702_d306b11a`).
+2. **Fresh State Allocation**: `new_run_state()` creates brand-new containers with no shared mutable references.
+3. **Provenance-Tagged Research Records**: Parallel researcher nodes emit structured records carrying `(run_id, sub_question, sources, findings, provenance)`. Downstream nodes filter using `current_run_records(state)` and drop any foreign record, recording an isolation violation in execution metadata.
+4. **Credential & Mode Scoping**: `run_llm_context` uses `ContextVars` to scope API credentials and mock flags to the current execution thread, preventing cross-request credential leakage.
+
+### (c) Research Relevance Validator Gate
+A dedicated `validator` node sits between `synthesizer` and `writer` in both Phase 1 and Phase 2:
+- **Isolation Check**: Validates that all research records belong strictly to the current `run_id`.
+- **Assignment Check**: Verifies that findings correspond directly to planned sub-questions.
+- **Citation Provenance**: Ensures every factual bullet links to a verified retrieved source URL.
+- **Semantic Audit**: A batched, temperature-0 LLM evaluation audits whether findings address the original inquiry. Flagged sub-questions are retried once with context-enriched queries. If all sub-questions fail, execution halts cleanly as `FAILED` rather than fabricating mock text.
+
+### (d) Context Window Preservation in LLM-as-a-Judge
+External scientific evaluation was previously constrained by a naive 12,000-character string slice. Because modern Gemini Flash models possess context windows exceeding 1,000,000 tokens, `eval/judge.py` was refactored to evaluate reports in full up to safe ceilings without arbitrary slicing. Reports are judged on Relevance, Completeness, Organization, and Grounding (1–5 integer scale). Mock reports and simulated data are explicitly rejected.
+
+### (e) Standardized Evaluation & Comparison Engine
+- **Stable Benchmark IDs (`Q01`–`Q10`)**: Eliminate fragile text-matching joins.
+- **Strict Metric Integrity**: Missing scores remain `None` (rendered as `N/A`) and are never converted to zero.
+- **Paired Live Calculations**: Experimental aggregates (mean quality, quality delta, latency overhead, token overhead) are calculated strictly over verified paired LIVE evaluations.
+
+

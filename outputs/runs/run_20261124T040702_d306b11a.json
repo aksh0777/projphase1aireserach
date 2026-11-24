@@ -1,0 +1,436 @@
+{
+  "record": {
+    "schema_version": 2,
+    "run_id": "run_20261124T040702_d306b11a",
+    "benchmark_id": null,
+    "question": "How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is?",
+    "phase": 2,
+    "architecture": "phase2_critic_loop",
+    "execution_mode": "MOCK",
+    "execution_status": "COMPLETE",
+    "display_status": "MOCK",
+    "error": "",
+    "model": "mock-generator",
+    "report_path": "outputs\\report_20261124_093719_d306b11a.md",
+    "latency": 17.07,
+    "input_tokens": 11395,
+    "output_tokens": 4795,
+    "total_tokens": 16190,
+    "tokens_estimated": true,
+    "token_basis": "estimated",
+    "llm_call_count": 12,
+    "searches": 4,
+    "search_provenance": "mixed",
+    "node_latencies": {
+      "latency_planner": 0.0,
+      "latency_researcher_306b27": 16.312,
+      "latency_researcher_ff95bb": 17.051,
+      "latency_researcher_93ef91": 4.789,
+      "latency_researcher_f69ac1": 2.779,
+      "latency_synthesizer": 0.001,
+      "latency_validator": 0.0,
+      "latency_writer": 0.001,
+      "latency_critic_iter_1": 0.0,
+      "latency_reviser_iter_1": 0.0,
+      "latency_critic_iter_2": 0.0,
+      "latency_reviser_iter_2": 0.0,
+      "latency_critic_iter_3": 0.0
+    },
+    "node_tokens": {
+      "tokens_planner": 319,
+      "tokens_researcher_306b27": 618,
+      "tokens_researcher_ff95bb": 640,
+      "tokens_researcher_93ef91": 881,
+      "tokens_researcher_f69ac1": 878,
+      "tokens_synthesizer": 1844,
+      "tokens_writer": 2331,
+      "tokens_critic_iter_1": 1428,
+      "tokens_reviser_iter_1": 2137,
+      "tokens_critic_iter_2": 1456,
+      "tokens_reviser_iter_2": 2193,
+      "tokens_critic_iter_3": 1465
+    },
+    "plan": [
+      "What are the definition, scope and background of: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??",
+      "What are the key comparisons, metrics or evidence relevant to: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??",
+      "What recent developments or empirical findings exist regarding: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??",
+      "What are the main limitations, risks and open questions for: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??"
+    ],
+    "validation": {
+      "run_id": "run_20261124T040702_d306b11a",
+      "status": "passed",
+      "semantic_check": "skipped_mock",
+      "retried": [],
+      "accepted": [
+        "What are the definition, scope and background of: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??",
+        "What are the key comparisons, metrics or evidence relevant to: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??",
+        "What recent developments or empirical findings exist regarding: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??",
+        "What are the main limitations, risks and open questions for: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??"
+      ],
+      "flagged": [],
+      "foreign_records_dropped": 0,
+      "resynthesized": false,
+      "brief_check": "ok",
+      "method": "deterministic only (MOCK mode)"
+    },
+    "failed_subquestions": [],
+    "isolation_violations": [],
+    "started_at": "2026-11-24T04:07:02.285850+00:00",
+    "timestamp": "2026-11-24T04:07:19.365787+00:00",
+    "critic_iterations": 3,
+    "revisions": 2,
+    "iterations_used": 2,
+    "score_history": [
+      {
+        "iteration": 1,
+        "draft_version": 0,
+        "scores": {
+          "relevance": 4,
+          "completeness": 3,
+          "organization": 4,
+          "grounding": 3
+        },
+        "justifications": {
+          "relevance": "[MOCK] Placeholder justification for relevance.",
+          "completeness": "[MOCK] Placeholder justification for completeness.",
+          "organization": "[MOCK] Placeholder justification for organization.",
+          "grounding": "[MOCK] Placeholder justification for grounding."
+        },
+        "flaws": [
+          "[MOCK] Section 2 states quantitative claims without a supporting citation.",
+          "[MOCK] The conclusion does not explicitly answer the research question."
+        ],
+        "verdict": "revise",
+        "mean": 3.5,
+        "draft_chars": 3628
+      },
+      {
+        "iteration": 2,
+        "draft_version": 1,
+        "scores": {
+          "relevance": 4,
+          "completeness": 4,
+          "organization": 4,
+          "grounding": 3
+        },
+        "justifications": {
+          "relevance": "[MOCK] Placeholder justification for relevance.",
+          "completeness": "[MOCK] Placeholder justification for completeness.",
+          "organization": "[MOCK] Placeholder justification for organization.",
+          "grounding": "[MOCK] Placeholder justification for grounding."
+        },
+        "flaws": [
+          "[MOCK] Section 2 states quantitative claims without a supporting citation."
+        ],
+        "verdict": "revise",
+        "mean": 3.75,
+        "draft_chars": 3815
+      },
+      {
+        "iteration": 3,
+        "draft_version": 2,
+        "scores": {
+          "relevance": 5,
+          "completeness": 4,
+          "organization": 5,
+          "grounding": 4
+        },
+        "justifications": {
+          "relevance": "[MOCK] Placeholder justification for relevance.",
+          "completeness": "[MOCK] Placeholder justification for completeness.",
+          "organization": "[MOCK] Placeholder justification for organization.",
+          "grounding": "[MOCK] Placeholder justification for grounding."
+        },
+        "flaws": [],
+        "verdict": "pass",
+        "mean": 4.5,
+        "draft_chars": 3929
+      }
+    ],
+    "final_verdict": "pass",
+    "cap_reached": false,
+    "critic_latency_total": 0.0,
+    "reviser_latency_total": 0.0,
+    "latest_draft_version": 2,
+    "best_draft_version": 2,
+    "final_draft_version": 2,
+    "selection_policy": "latest_if_pass_else_best_critic_mean",
+    "loop_error": ""
+  },
+  "snapshot": {
+    "plan": [
+      "What are the definition, scope and background of: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??",
+      "What are the key comparisons, metrics or evidence relevant to: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??",
+      "What recent developments or empirical findings exist regarding: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??",
+      "What are the main limitations, risks and open questions for: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??"
+    ],
+    "validated_notes": {
+      "What are the definition, scope and background of: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??": [
+        "[MOCK] Placeholder finding 1 for the sub-question \"What are the definition, scope and background of: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??\" - no language model was called [https://research-index.org/papers/3159].",
+        "[MOCK] Placeholder finding 2 for the sub-question \"What are the definition, scope and background of: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??\" - generated without real evidence [https://standards-tracker.net/reports/2026/3159]."
+      ],
+      "What are the key comparisons, metrics or evidence relevant to: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??": [
+        "[MOCK] Placeholder finding 1 for the sub-question \"What are the key comparisons, metrics or evidence relevant to: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??\" - no language model was called [https://research-index.org/papers/11].",
+        "[MOCK] Placeholder finding 2 for the sub-question \"What are the key comparisons, metrics or evidence relevant to: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??\" - generated without real evidence [https://standards-tracker.net/reports/2026/11]."
+      ],
+      "What recent developments or empirical findings exist regarding: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??": [
+        "[MOCK] Placeholder finding 1 for the sub-question \"What recent developments or empirical findings exist regarding: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??\" - no language model was called [https://thecricscope.com/cricket-statistics/virat-kohli-vs-ms-dhoni/].",
+        "[MOCK] Placeholder finding 2 for the sub-question \"What recent developments or empirical findings exist regarding: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??\" - generated without real evidence [https://www.thesportslegends.com/cricket/ms-dhoni-vs-virat-kohli-stats-comparison]."
+      ],
+      "What are the main limitations, risks and open questions for: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??": [
+        "[MOCK] Placeholder finding 1 for the sub-question \"What are the main limitations, risks and open questions for: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??\" - no language model was called [https://www.thesportslegends.com/cricket/ms-dhoni-vs-virat-kohli-captaincy-records].",
+        "[MOCK] Placeholder finding 2 for the sub-question \"What are the main limitations, risks and open questions for: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??\" - generated without real evidence [https://thecricscope.com/cricket-statistics/ms-dhoni-vs-virat-kohli/]."
+      ]
+    },
+    "research_records": [
+      {
+        "run_id": "run_20261124T040702_d306b11a",
+        "question": "How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is?",
+        "sub_question": "What are the definition, scope and background of: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??",
+        "status": "ok",
+        "mode": "mock",
+        "search_provenance": "simulated",
+        "findings": [
+          "[MOCK] Placeholder finding 1 for the sub-question \"What are the definition, scope and background of: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??\" - no language model was called [https://research-index.org/papers/3159].",
+          "[MOCK] Placeholder finding 2 for the sub-question \"What are the definition, scope and background of: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??\" - generated without real evidence [https://standards-tracker.net/reports/2026/3159]."
+        ],
+        "sources": [
+          {
+            "title": "[SIMULATED] Placeholder source A: What are the definition, scope and background of: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??",
+            "url": "https://research-index.org/papers/3159",
+            "snippet": "Simulated placeholder snippet echoing the query: What are the definition, scope and background of: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??.",
+            "provenance": "simulated"
+          },
+          {
+            "title": "[SIMULATED] Placeholder source B: What are the definition, scope and background of: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??",
+            "url": "https://standards-tracker.net/reports/2026/3159",
+            "snippet": "Second simulated placeholder snippet echoing the query: What are the definition, scope and background of: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??.",
+            "provenance": "simulated"
+          }
+        ],
+        "error": "",
+        "retry": false,
+        "unverified_citations": [],
+        "dropped_uncited": 0
+      },
+      {
+        "run_id": "run_20261124T040702_d306b11a",
+        "question": "How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is?",
+        "sub_question": "What are the key comparisons, metrics or evidence relevant to: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??",
+        "status": "ok",
+        "mode": "mock",
+        "search_provenance": "simulated",
+        "findings": [
+          "[MOCK] Placeholder finding 1 for the sub-question \"What are the key comparisons, metrics or evidence relevant to: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??\" - no language model was called [https://research-index.org/papers/11].",
+          "[MOCK] Placeholder finding 2 for the sub-question \"What are the key comparisons, metrics or evidence relevant to: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??\" - generated without real evidence [https://standards-tracker.net/reports/2026/11]."
+        ],
+        "sources": [
+          {
+            "title": "[SIMULATED] Placeholder source A: What are the key comparisons, metrics or evidence relevant to: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??",
+            "url": "https://research-index.org/papers/11",
+            "snippet": "Simulated placeholder snippet echoing the query: What are the key comparisons, metrics or evidence relevant to: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??.",
+            "provenance": "simulated"
+          },
+          {
+            "title": "[SIMULATED] Placeholder source B: What are the key comparisons, metrics or evidence relevant to: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??",
+            "url": "https://standards-tracker.net/reports/2026/11",
+            "snippet": "Second simulated placeholder snippet echoing the query: What are the key comparisons, metrics or evidence relevant to: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??.",
+            "provenance": "simulated"
+          }
+        ],
+        "error": "",
+        "retry": false,
+        "unverified_citations": [],
+        "dropped_uncited": 0
+      },
+      {
+        "run_id": "run_20261124T040702_d306b11a",
+        "question": "How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is?",
+        "sub_question": "What recent developments or empirical findings exist regarding: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??",
+        "status": "ok",
+        "mode": "mock",
+        "search_provenance": "live",
+        "findings": [
+          "[MOCK] Placeholder finding 1 for the sub-question \"What recent developments or empirical findings exist regarding: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??\" - no language model was called [https://thecricscope.com/cricket-statistics/virat-kohli-vs-ms-dhoni/].",
+          "[MOCK] Placeholder finding 2 for the sub-question \"What recent developments or empirical findings exist regarding: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??\" - generated without real evidence [https://www.thesportslegends.com/cricket/ms-dhoni-vs-virat-kohli-stats-comparison]."
+        ],
+        "sources": [
+          {
+            "title": "Virat Kohli Vs MS Dhoni: All-Time Career & Captaincy Verdict ...",
+            "url": "https://thecricscope.com/cricket-statistics/virat-kohli-vs-ms-dhoni/",
+            "snippet": "Jun 4, 2026 · Virat Kohli vs MS Dhoni compared across Tests, ODIs, T20Is, the IPL, captaincy and ICC trophies. Our role-adjusted editorial verdict on cricket's biggest debate.",
+            "provenance": "live"
+          },
+          {
+            "title": "MS Dhoni vs Virat Kohli Stats Comparison: Who Is Greater?",
+            "url": "https://www.thesportslegends.com/cricket/ms-dhoni-vs-virat-kohli-stats-comparison",
+            "snippet": "May 12, 2026 · Compare MS Dhoni vs Virat Kohli stats across Tests, ODIs, T20Is, IPL, and captaincy records. Explore who leads in runs, trophies, averages, and impact in this ultimate 2026 cricket comparison.",
+            "provenance": "live"
+          },
+          {
+            "title": "MS Dhoni vs Virat Kohli: Captaincy Records Compared",
+            "url": "https://www.thesportslegends.com/cricket/ms-dhoni-vs-virat-kohli-captaincy-records",
+            "snippet": "Nov 4, 2026 · MS Dhoni vs Virat Kohli: Compare captaincy records, ICC trophies, Test wins and leadership styles to understand their impact on Indian cricket. Read more.",
+            "provenance": "live"
+          },
+          {
+            "title": "MS Dhoni Vs Virat Kohli: Captaincy & Career — All-Time ...",
+            "url": "https://thecricscope.com/cricket-statistics/ms-dhoni-vs-virat-kohli/",
+            "snippet": "Jun 1, 2026 · In our coverage of all-time captaincy and batting comparisons, we tracked both MS Dhoni’s and Virat Kohli’s records against ESPNCricinfo Statsguru and ICC archives.",
+            "provenance": "live"
+          },
+          {
+            "title": "Who is Better: Ms Dhoni vs Virat Kohli – Batting & Captaincy 2026",
+            "url": "https://cricmints.com/ms-dhoni-vs-virat-kohli/",
+            "snippet": "Jul 7, 2026 · In this comparison, we’ll take a detailed look at their batting records, captaincy achievements, career statistics, playing styles, major milestones, and overall impact on the game to help you understand how these two icons compare. Here’s a quick snapshot before diving into the details.",
+            "provenance": "live"
+          }
+        ],
+        "error": "",
+        "retry": false,
+        "unverified_citations": [],
+        "dropped_uncited": 0
+      },
+      {
+        "run_id": "run_20261124T040702_d306b11a",
+        "question": "How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is?",
+        "sub_question": "What are the main limitations, risks and open questions for: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??",
+        "status": "ok",
+        "mode": "mock",
+        "search_provenance": "live",
+        "findings": [
+          "[MOCK] Placeholder finding 1 for the sub-question \"What are the main limitations, risks and open questions for: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??\" - no language model was called [https://www.thesportslegends.com/cricket/ms-dhoni-vs-virat-kohli-captaincy-records].",
+          "[MOCK] Placeholder finding 2 for the sub-question \"What are the main limitations, risks and open questions for: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??\" - generated without real evidence [https://thecricscope.com/cricket-statistics/ms-dhoni-vs-virat-kohli/]."
+        ],
+        "sources": [
+          {
+            "title": "MS Dhoni vs Virat Kohli: Captaincy Records Compared",
+            "url": "https://www.thesportslegends.com/cricket/ms-dhoni-vs-virat-kohli-captaincy-records",
+            "snippet": "Nov 4, 2026 · MS Dhoni vs Virat Kohli: Compare captaincy records, ICC trophies, Test wins and leadership styles to understand their impact on Indian cricket. Read more.",
+            "provenance": "live"
+          },
+          {
+            "title": "MS Dhoni Vs Virat Kohli: Captaincy & Career — All-Time ...",
+            "url": "https://thecricscope.com/cricket-statistics/ms-dhoni-vs-virat-kohli/",
+            "snippet": "Jun 1, 2026 · MS Dhoni vs Virat Kohli compared across captaincy, Tests, ODIs, T20Is, trophies and batting roles. Our editorial verdict on India's greatest leadership debate.",
+            "provenance": "live"
+          },
+          {
+            "title": "Virat Kohli Vs MS Dhoni: All-Time Career & Captaincy Verdict ...",
+            "url": "https://thecricscope.com/cricket-statistics/virat-kohli-vs-ms-dhoni/",
+            "snippet": "Jun 4, 2026 · Virat Kohli vs MS Dhoni compared across Tests, ODIs, T20Is, the IPL, captaincy and ICC trophies. Our role-adjusted editorial verdict on cricket's biggest debate.",
+            "provenance": "live"
+          },
+          {
+            "title": "Who is Better: Ms Dhoni vs Virat Kohli – Batting & Captaincy 2026",
+            "url": "https://cricmints.com/ms-dhoni-vs-virat-kohli/",
+            "snippet": "Jul 7, 2026 · In this comparison, we’ll take a detailed look at their batting records, captaincy achievements, career statistics, playing styles, major milestones, and overall impact on the game to help you understand how these two icons compare. Here’s a quick snapshot before diving into the details.",
+            "provenance": "live"
+          },
+          {
+            "title": "MS Dhoni vs Virat Kohli Stats Comparison: Who Is Greater?",
+            "url": "https://www.thesportslegends.com/cricket/ms-dhoni-vs-virat-kohli-stats-comparison",
+            "snippet": "May 12, 2026 · Compare MS Dhoni vs Virat Kohli stats across Tests, ODIs, T20Is, IPL, and captaincy records. Explore who leads in runs, trophies, averages, and impact in this ultimate 2026 cricket comparison.",
+            "provenance": "live"
+          }
+        ],
+        "error": "",
+        "retry": false,
+        "unverified_citations": [],
+        "dropped_uncited": 0
+      }
+    ],
+    "brief": "# Research Brief: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is?\n\n> MOCK EXECUTION: this brief was assembled without a language model.\n\n## 1. Executive Synthesis\nPlaceholder synthesis of the findings below.\n\n## 2. Thematic Analysis\n- [MOCK] Placeholder finding 1 for the sub-question \"What are the definition, scope and background of: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??\" - no language model was called [https://research-index.org/papers/3159].\n- [MOCK] Placeholder finding 2 for the sub-question \"What are the definition, scope and background of: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??\" - generated without real evidence [https://standards-tracker.net/reports/2026/3159].\n- [MOCK] Placeholder finding 1 for the sub-question \"What are the key comparisons, metrics or evidence relevant to: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??\" - no language model was called [https://research-index.org/papers/11].\n- [MOCK] Placeholder finding 2 for the sub-question \"What are the key comparisons, metrics or evidence relevant to: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??\" - generated without real evidence [https://standards-tracker.net/reports/2026/11].\n- [MOCK] Placeholder finding 1 for the sub-question \"What recent developments or empirical findings exist regarding: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??\" - no language model was called [https://thecricscope.com/cricket-statistics/virat-kohli-vs-ms-dhoni/].\n- [MOCK] Placeholder finding 2 for the sub-question \"What recent developments or empirical findings exist regarding: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??\" - generated without real evidence [https://www.thesportslegends.com/cricket/ms-dhoni-vs-virat-kohli-stats-comparison].\n- [MOCK] Placeholder finding 1 for the sub-question \"What are the main limitations, risks and open questions for: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??\" - no language model was called [https://www.thesportslegends.com/cricket/ms-dhoni-vs-virat-kohli-captaincy-records].\n- [MOCK] Placeholder finding 2 for the sub-question \"What are the main limitations, risks and open questions for: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??\" - generated without real evidence [https://thecricscope.com/cricket-statistics/ms-dhoni-vs-virat-kohli/].\n\n## 3. Cross-Source Contradictions & Divergences\nNot assessed in MOCK mode.\n\n## 4. Consolidated Source Index\n[1] https://research-index.org/papers/3159\n[2] https://standards-tracker.net/reports/2026/3159\n[3] https://research-index.org/papers/11\n[4] https://standards-tracker.net/reports/2026/11\n[5] https://thecricscope.com/cricket-statistics/virat-kohli-vs-ms-dhoni/\n[6] https://www.thesportslegends.com/cricket/ms-dhoni-vs-virat-kohli-stats-comparison\n[7] https://www.thesportslegends.com/cricket/ms-dhoni-vs-virat-kohli-captaincy-records\n[8] https://thecricscope.com/cricket-statistics/ms-dhoni-vs-virat-kohli/",
+    "draft_history": [
+      {
+        "version": 0,
+        "author": "writer",
+        "text": "# Deep Research Report: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is?\n\n> ⚠️ **MOCK EXECUTION** — this report was produced by placeholder generators (no language model and no real sources). It must not be used as research evidence.\n\n**Date:** 2026-11-24 09:37:19  \n\n## Introduction & Context\nPlaceholder introduction (MOCK).\n\n## 1. What are the definition, scope and background of: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??\n\n- [MOCK] Placeholder finding 1 for the sub-question \"What are the definition, scope and background of: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??\" - no language model was called. [1]\n- [MOCK] Placeholder finding 2 for the sub-question \"What are the definition, scope and background of: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??\" - generated without real evidence. [2]\n\n## 2. What are the key comparisons, metrics or evidence relevant to: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??\n\n- [MOCK] Placeholder finding 1 for the sub-question \"What are the key comparisons, metrics or evidence relevant to: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??\" - no language model was called. [3]\n- [MOCK] Placeholder finding 2 for the sub-question \"What are the key comparisons, metrics or evidence relevant to: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??\" - generated without real evidence. [4]\n\n## 3. What recent developments or empirical findings exist regarding: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??\n\n- [MOCK] Placeholder finding 1 for the sub-question \"What recent developments or empirical findings exist regarding: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??\" - no language model was called. [5]\n- [MOCK] Placeholder finding 2 for the sub-question \"What recent developments or empirical findings exist regarding: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??\" - generated without real evidence. [6]\n\n## 4. What are the main limitations, risks and open questions for: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??\n\n- [MOCK] Placeholder finding 1 for the sub-question \"What are the main limitations, risks and open questions for: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??\" - no language model was called. [7]\n- [MOCK] Placeholder finding 2 for the sub-question \"What are the main limitations, risks and open questions for: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??\" - generated without real evidence. [8]\n\n## Synthesis & Strategic Conclusion\nPlaceholder conclusion (MOCK).\n\n## References\n[1] https://research-index.org/papers/3159\n[2] https://standards-tracker.net/reports/2026/3159\n[3] https://research-index.org/papers/11\n[4] https://standards-tracker.net/reports/2026/11\n[5] https://thecricscope.com/cricket-statistics/virat-kohli-vs-ms-dhoni/\n[6] https://www.thesportslegends.com/cricket/ms-dhoni-vs-virat-kohli-stats-comparison\n[7] https://www.thesportslegends.com/cricket/ms-dhoni-vs-virat-kohli-captaincy-records\n[8] https://thecricscope.com/cricket-statistics/ms-dhoni-vs-virat-kohli/\n[9] https://cricmints.com/ms-dhoni-vs-virat-kohli/",
+        "chars": 3628,
+        "run_id": "run_20261124T040702_d306b11a"
+      },
+      {
+        "version": 1,
+        "author": "reviser",
+        "text": "# Deep Research Report: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is?\n\n> ⚠️ **MOCK EXECUTION** — this report was produced by placeholder generators (no language model and no real sources). It must not be used as research evidence.\n\n**Date:** 2026-11-24 09:37:19  \n\n## Introduction & Context\nPlaceholder introduction (MOCK).\n\n## 1. What are the definition, scope and background of: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??\n\n- [MOCK] Placeholder finding 1 for the sub-question \"What are the definition, scope and background of: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??\" - no language model was called. [1]\n- [MOCK] Placeholder finding 2 for the sub-question \"What are the definition, scope and background of: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??\" - generated without real evidence. [2]\n\n## 2. What are the key comparisons, metrics or evidence relevant to: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??\n\n- [MOCK] Placeholder finding 1 for the sub-question \"What are the key comparisons, metrics or evidence relevant to: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??\" - no language model was called. [3]\n- [MOCK] Placeholder finding 2 for the sub-question \"What are the key comparisons, metrics or evidence relevant to: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??\" - generated without real evidence. [4]\n\n## 3. What recent developments or empirical findings exist regarding: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??\n\n- [MOCK] Placeholder finding 1 for the sub-question \"What recent developments or empirical findings exist regarding: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??\" - no language model was called. [5]\n- [MOCK] Placeholder finding 2 for the sub-question \"What recent developments or empirical findings exist regarding: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??\" - generated without real evidence. [6]\n\n## 4. What are the main limitations, risks and open questions for: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??\n\n- [MOCK] Placeholder finding 1 for the sub-question \"What are the main limitations, risks and open questions for: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??\" - no language model was called. [7]\n- [MOCK] Placeholder finding 2 for the sub-question \"What are the main limitations, risks and open questions for: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??\" - generated without real evidence. [8]\n\n## Synthesis & Strategic Conclusion\nPlaceholder conclusion (MOCK).\n\n## References\n[1] https://research-index.org/papers/3159\n[2] https://standards-tracker.net/reports/2026/3159\n[3] https://research-index.org/papers/11\n[4] https://standards-tracker.net/reports/2026/11\n[5] https://thecricscope.com/cricket-statistics/virat-kohli-vs-ms-dhoni/\n[6] https://www.thesportslegends.com/cricket/ms-dhoni-vs-virat-kohli-stats-comparison\n[7] https://www.thesportslegends.com/cricket/ms-dhoni-vs-virat-kohli-captaincy-records\n[8] https://thecricscope.com/cricket-statistics/ms-dhoni-vs-virat-kohli/\n[9] https://cricmints.com/ms-dhoni-vs-virat-kohli/\n\n_Revision notes (MOCK): addressed -> [MOCK] Section 2 states quantitative claims without a supporting citation.; [MOCK] The conclusion does not explicitly answer the research question._",
+        "chars": 3815,
+        "run_id": "run_20261124T040702_d306b11a"
+      },
+      {
+        "version": 2,
+        "author": "reviser",
+        "text": "# Deep Research Report: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is?\n\n> ⚠️ **MOCK EXECUTION** — this report was produced by placeholder generators (no language model and no real sources). It must not be used as research evidence.\n\n**Date:** 2026-11-24 09:37:19  \n\n## Introduction & Context\nPlaceholder introduction (MOCK).\n\n## 1. What are the definition, scope and background of: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??\n\n- [MOCK] Placeholder finding 1 for the sub-question \"What are the definition, scope and background of: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??\" - no language model was called. [1]\n- [MOCK] Placeholder finding 2 for the sub-question \"What are the definition, scope and background of: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??\" - generated without real evidence. [2]\n\n## 2. What are the key comparisons, metrics or evidence relevant to: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??\n\n- [MOCK] Placeholder finding 1 for the sub-question \"What are the key comparisons, metrics or evidence relevant to: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??\" - no language model was called. [3]\n- [MOCK] Placeholder finding 2 for the sub-question \"What are the key comparisons, metrics or evidence relevant to: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??\" - generated without real evidence. [4]\n\n## 3. What recent developments or empirical findings exist regarding: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??\n\n- [MOCK] Placeholder finding 1 for the sub-question \"What recent developments or empirical findings exist regarding: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??\" - no language model was called. [5]\n- [MOCK] Placeholder finding 2 for the sub-question \"What recent developments or empirical findings exist regarding: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??\" - generated without real evidence. [6]\n\n## 4. What are the main limitations, risks and open questions for: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??\n\n- [MOCK] Placeholder finding 1 for the sub-question \"What are the main limitations, risks and open questions for: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??\" - no language model was called. [7]\n- [MOCK] Placeholder finding 2 for the sub-question \"What are the main limitations, risks and open questions for: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??\" - generated without real evidence. [8]\n\n## Synthesis & Strategic Conclusion\nPlaceholder conclusion (MOCK).\n\n## References\n[1] https://research-index.org/papers/3159\n[2] https://standards-tracker.net/reports/2026/3159\n[3] https://research-index.org/papers/11\n[4] https://standards-tracker.net/reports/2026/11\n[5] https://thecricscope.com/cricket-statistics/virat-kohli-vs-ms-dhoni/\n[6] https://www.thesportslegends.com/cricket/ms-dhoni-vs-virat-kohli-stats-comparison\n[7] https://www.thesportslegends.com/cricket/ms-dhoni-vs-virat-kohli-captaincy-records\n[8] https://thecricscope.com/cricket-statistics/ms-dhoni-vs-virat-kohli/\n[9] https://cricmints.com/ms-dhoni-vs-virat-kohli/\n\n_Revision notes (MOCK): addressed -> [MOCK] Section 2 states quantitative claims without a supporting citation.; [MOCK] The conclusion does not explicitly answer the research question._\n\n_Revision notes (MOCK): addressed -> [MOCK] Section 2 states quantitative claims without a supporting citation._",
+        "chars": 3929,
+        "run_id": "run_20261124T040702_d306b11a"
+      }
+    ],
+    "score_history": [
+      {
+        "iteration": 1,
+        "draft_version": 0,
+        "scores": {
+          "relevance": 4,
+          "completeness": 3,
+          "organization": 4,
+          "grounding": 3
+        },
+        "justifications": {
+          "relevance": "[MOCK] Placeholder justification for relevance.",
+          "completeness": "[MOCK] Placeholder justification for completeness.",
+          "organization": "[MOCK] Placeholder justification for organization.",
+          "grounding": "[MOCK] Placeholder justification for grounding."
+        },
+        "flaws": [
+          "[MOCK] Section 2 states quantitative claims without a supporting citation.",
+          "[MOCK] The conclusion does not explicitly answer the research question."
+        ],
+        "verdict": "revise",
+        "mean": 3.5,
+        "draft_chars": 3628
+      },
+      {
+        "iteration": 2,
+        "draft_version": 1,
+        "scores": {
+          "relevance": 4,
+          "completeness": 4,
+          "organization": 4,
+          "grounding": 3
+        },
+        "justifications": {
+          "relevance": "[MOCK] Placeholder justification for relevance.",
+          "completeness": "[MOCK] Placeholder justification for completeness.",
+          "organization": "[MOCK] Placeholder justification for organization.",
+          "grounding": "[MOCK] Placeholder justification for grounding."
+        },
+        "flaws": [
+          "[MOCK] Section 2 states quantitative claims without a supporting citation."
+        ],
+        "verdict": "revise",
+        "mean": 3.75,
+        "draft_chars": 3815
+      },
+      {
+        "iteration": 3,
+        "draft_version": 2,
+        "scores": {
+          "relevance": 5,
+          "completeness": 4,
+          "organization": 5,
+          "grounding": 4
+        },
+        "justifications": {
+          "relevance": "[MOCK] Placeholder justification for relevance.",
+          "completeness": "[MOCK] Placeholder justification for completeness.",
+          "organization": "[MOCK] Placeholder justification for organization.",
+          "grounding": "[MOCK] Placeholder justification for grounding."
+        },
+        "flaws": [],
+        "verdict": "pass",
+        "mean": 4.5,
+        "draft_chars": 3929
+      }
+    ],
+    "final_report": "# Deep Research Report: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is?\n\n> ⚠️ **MOCK EXECUTION** — this report was produced by placeholder generators (no language model and no real sources). It must not be used as research evidence.\n\n**Date:** 2026-11-24 09:37:19  \n\n## Introduction & Context\nPlaceholder introduction (MOCK).\n\n## 1. What are the definition, scope and background of: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??\n\n- [MOCK] Placeholder finding 1 for the sub-question \"What are the definition, scope and background of: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??\" - no language model was called. [1]\n- [MOCK] Placeholder finding 2 for the sub-question \"What are the definition, scope and background of: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??\" - generated without real evidence. [2]\n\n## 2. What are the key comparisons, metrics or evidence relevant to: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??\n\n- [MOCK] Placeholder finding 1 for the sub-question \"What are the key comparisons, metrics or evidence relevant to: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??\" - no language model was called. [3]\n- [MOCK] Placeholder finding 2 for the sub-question \"What are the key comparisons, metrics or evidence relevant to: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??\" - generated without real evidence. [4]\n\n## 3. What recent developments or empirical findings exist regarding: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??\n\n- [MOCK] Placeholder finding 1 for the sub-question \"What recent developments or empirical findings exist regarding: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??\" - no language model was called. [5]\n- [MOCK] Placeholder finding 2 for the sub-question \"What recent developments or empirical findings exist regarding: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??\" - generated without real evidence. [6]\n\n## 4. What are the main limitations, risks and open questions for: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??\n\n- [MOCK] Placeholder finding 1 for the sub-question \"What are the main limitations, risks and open questions for: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??\" - no language model was called. [7]\n- [MOCK] Placeholder finding 2 for the sub-question \"What are the main limitations, risks and open questions for: How do the captaincy records of MS Dhoni compare to Virat Kohli across Tests, ODIs and T20Is??\" - generated without real evidence. [8]\n\n## Synthesis & Strategic Conclusion\nPlaceholder conclusion (MOCK).\n\n## References\n[1] https://research-index.org/papers/3159\n[2] https://standards-tracker.net/reports/2026/3159\n[3] https://research-index.org/papers/11\n[4] https://standards-tracker.net/reports/2026/11\n[5] https://thecricscope.com/cricket-statistics/virat-kohli-vs-ms-dhoni/\n[6] https://www.thesportslegends.com/cricket/ms-dhoni-vs-virat-kohli-stats-comparison\n[7] https://www.thesportslegends.com/cricket/ms-dhoni-vs-virat-kohli-captaincy-records\n[8] https://thecricscope.com/cricket-statistics/ms-dhoni-vs-virat-kohli/\n[9] https://cricmints.com/ms-dhoni-vs-virat-kohli/\n\n_Revision notes (MOCK): addressed -> [MOCK] Section 2 states quantitative claims without a supporting citation.; [MOCK] The conclusion does not explicitly answer the research question._\n\n_Revision notes (MOCK): addressed -> [MOCK] Section 2 states quantitative claims without a supporting citation._"
+  }
+}

@@ -1,18 +1,24 @@
 """
 Web Search Tool for Multi-Agent Deep Research System
-Architecture Reference: docs/EXPLANATIONS.md - Section 3: "The Web Search Tool"
+Architecture Reference: docs/EXPLANATIONS.md - Section 3 and Chapter 13
 
 First Principle:
-Grounding: An LLM is parametric memory frozen at training time.
-An external search tool supplies non-parametric retrieval tokens,
-grounding the generation in external, verifiable reality.
+Grounding: an LLM is parametric memory frozen at training time. An external
+search tool supplies non-parametric retrieval tokens, grounding generation in
+verifiable reality.
+
+Integrity rule (Chapter 13): fabricated "simulated" sources are ONLY produced
+when the caller explicitly allows them (MOCK mode). In LIVE mode a failed
+search returns an empty list, so the researcher reports a failed sub-question
+instead of silently grounding the report on invented URLs.
+Every hit carries ``provenance``: "live" or "simulated".
 """
 
 import logging
 import time
-from typing import Any, Dict, List
+from typing import Dict, List
 
-# Handle various duckduckgo_search distributions (prefer modern ddgs package)
+# Handle various distributions (prefer modern ddgs package)
 try:
     from ddgs import DDGS
 except ImportError:
@@ -23,29 +29,34 @@ except ImportError:
 
 logger = logging.getLogger("SearchTool")
 
+# Domains that only ever appear in simulated/mock sources (used to audit legacy data).
+SIMULATED_SOURCE_DOMAINS = (
+    "research-index.org",
+    "standards-tracker.net",
+    "energy-storage-review.org",
+    "bloomberg-energy.com/bess-cost-parity",
+    "iea.org/reports/battery-storage-outlook-2026",
+)
 
-def _fallback_simulated_search(query: str, max_results: int) -> List[Dict[str, str]]:
-    """
-    Fallback synthetic retrieval engine if external search is temporarily unreachable,
-    rate-limited, or blocked by ISP/network. Guarantees deterministic progress.
-    """
+
+def _simulated_search(query: str, max_results: int) -> List[Dict[str, str]]:
+    """Deterministic placeholder sources for MOCK mode only. Clearly tagged provenance='simulated'."""
+    import hashlib
+
     cleaned = query.strip()
+    h = int(hashlib.sha1(cleaned.encode("utf-8")).hexdigest()[:6], 16)
     return [
         {
-            "title": f"Industry Analysis & Technical Review: {cleaned}",
-            "url": f"https://research-index.org/papers/{abs(hash(cleaned)) % 10000}",
-            "snippet": (
-                f"Comprehensive 2026 data and empirical comparative metrics regarding {cleaned}. "
-                "Highlighting key technical trade-offs, industrial deployments, lifecycle costs, and recent benchmarks."
-            ),
+            "title": f"[SIMULATED] Placeholder source A: {cleaned}",
+            "url": f"https://research-index.org/papers/{h % 10000}",
+            "snippet": f"Simulated placeholder snippet echoing the query: {cleaned}.",
+            "provenance": "simulated",
         },
         {
-            "title": f"Current Standards & Market Data: {cleaned}",
-            "url": f"https://standards-tracker.net/reports/2026/{abs(hash(cleaned)) % 5000}",
-            "snippet": (
-                f"State of technology and regulatory developments for {cleaned}. "
-                "Presents performance evaluations, efficiency curves, safety metrics, and operational projections."
-            ),
+            "title": f"[SIMULATED] Placeholder source B: {cleaned}",
+            "url": f"https://standards-tracker.net/reports/2026/{h % 5000}",
+            "snippet": f"Second simulated placeholder snippet echoing the query: {cleaned}.",
+            "provenance": "simulated",
         },
     ][:max_results]
 
@@ -56,58 +67,52 @@ def search_web(
     max_retries: int = 3,
     backoff_factor: float = 1.5,
     timeout: float = 8.0,
+    allow_simulated: bool = False,
+    simulate_only: bool = False,
 ) -> List[Dict[str, str]]:
     """
-    Execute a DuckDuckGo search query with retry logic, exponential backoff,
-    and graceful empty/error fallback.
+    Execute a web search with retry + exponential backoff.
 
-    Args:
-        query: Search string or sub-question
-        max_results: Max items to retrieve (default 5)
-        max_retries: Number of retry attempts upon failure
-        backoff_factor: Multiplier for exponential backoff wait
-        timeout: Timeout per attempt in seconds
-
-    Returns:
-        List of dicts: [{"title": str, "url": str, "snippet": str}]
+    Returns a list of {"title", "url", "snippet", "provenance"} dicts.
+    On total failure returns [] unless ``allow_simulated`` (MOCK mode) is True.
+    ``simulate_only`` skips the network entirely (used by forced-MOCK runs and tests).
     """
     if not query or not query.strip():
         return []
 
     clean_query = query.strip()
 
+    if simulate_only:
+        return _simulated_search(clean_query, max_results)
+
     for attempt in range(1, max_retries + 1):
         try:
             if DDGS is not None:
                 with DDGS(timeout=timeout) as ddgs:
                     raw_results = list(ddgs.text(clean_query, max_results=max_results))
-                    if raw_results:
-                        normalized: List[Dict[str, str]] = []
-                        for item in raw_results:
-                            title = item.get("title", "Untitled Source").strip()
-                            url = item.get("href") or item.get("link") or item.get("url") or ""
-                            snippet = item.get("body") or item.get("snippet") or item.get("abstract") or ""
-                            if url and snippet:
-                                normalized.append({
-                                    "title": title,
-                                    "url": url.strip(),
-                                    "snippet": snippet.strip(),
-                                })
-                        if normalized:
-                            return normalized[:max_results]
-        except Exception as exc:
-            logger.warning(
-                "Search attempt %d/%d for '%s' failed: %s",
-                attempt,
-                max_retries,
-                clean_query,
-                str(exc),
-            )
+                    normalized: List[Dict[str, str]] = []
+                    for item in raw_results:
+                        title = (item.get("title") or "Untitled Source").strip()
+                        url = item.get("href") or item.get("link") or item.get("url") or ""
+                        snippet = item.get("body") or item.get("snippet") or item.get("abstract") or ""
+                        if url and snippet:
+                            normalized.append({
+                                "title": title,
+                                "url": url.strip(),
+                                "snippet": snippet.strip(),
+                                "provenance": "live",
+                            })
+                    if normalized:
+                        return normalized[:max_results]
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("Search attempt %d/%d for '%s' failed: %s", attempt, max_retries, clean_query, str(exc))
 
         if attempt < max_retries:
-            sleep_time = backoff_factor ** attempt
-            time.sleep(sleep_time)
+            time.sleep(backoff_factor ** attempt)
 
-    # If live search fails or returned nothing after retries, fallback gracefully
-    logger.info("Using resilient fallback search snippets for query: '%s'", clean_query)
-    return _fallback_simulated_search(clean_query, max_results)
+    if allow_simulated:
+        logger.info("MOCK mode: using simulated placeholder sources for '%s'", clean_query)
+        return _simulated_search(clean_query, max_results)
+
+    logger.warning("Live search returned no usable results for '%s' (no simulated fallback in LIVE mode).", clean_query)
+    return []

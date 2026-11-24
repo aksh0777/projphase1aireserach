@@ -1,19 +1,22 @@
 """
 Planner Agent for Multi-Agent Deep Research System
-Architecture Reference: docs/EXPLANATIONS.md - Section 4: "The Planner Agent"
+Architecture Reference: docs/EXPLANATIONS.md - Section 4 and Chapter 13
 
 First Principle:
-Problem Decomposition & Cognitive Load Reduction:
-An LLM is a next-token predictor with an effective receptive field limit.
-Breaking a complex, open-ended question into 3-5 orthogonal sub-questions reduces
-entropy and allows parallel, focused information retrieval.
+Problem Decomposition & Cognitive Load Reduction: breaking a complex, open-ended
+question into 3-5 orthogonal sub-questions reduces entropy and allows parallel,
+focused information retrieval.
+
+Integrity: in LIVE mode an unparsable plan raises LLMUnavailableError (the run is
+FAILED) instead of silently substituting a canned plan. The MOCK plan is generic.
 """
 
 import json
 import logging
 import re
 from typing import Any, Dict, List
-from agents.llm import call_llm
+
+from agents.llm import LLMUnavailableError, call_llm, is_live_mode, merge_usage, usage_record
 from state import ResearchState
 
 logger = logging.getLogger("PlannerAgent")
@@ -23,61 +26,39 @@ def _clean_and_parse_json(text: str) -> Dict[str, Any]:
     """Parse JSON output from LLM, stripping markdown codeblocks if present."""
     text_clean = text.strip()
     if text_clean.startswith("```"):
-        # Remove ```json ... ``` wrapper
         text_clean = re.sub(r"^```(?:json)?\s*", "", text_clean, flags=re.IGNORECASE)
         text_clean = re.sub(r"\s*```$", "", text_clean)
-
-    # Search for first { ... } block
     match = re.search(r"\{.*\}", text_clean, re.DOTALL)
     if match:
         text_clean = match.group(0)
-
     return json.loads(text_clean)
 
 
 def _mock_plan_generator(topic: str) -> str:
-    """Generate deterministic research plan if LLM is in placeholder/mock mode."""
-    lower = topic.lower()
-    if "battery" in lower or "lithium" in lower or "sodium" in lower:
-        return json.dumps({
-            "sub_questions": [
-                "What are the 2026 cost and raw material supply chain differences between lithium-ion and sodium-ion batteries?",
-                "How do energy density, cycle life, and round-trip efficiency compare for utility-scale grid storage?",
-                "What are the thermal runaway risks, safety standards, and fire suppression requirements for both chemistries?",
-                "What commercial grid-scale sodium-ion battery storage deployments and pilot projects exist as of 2026?"
-            ]
-        })
-    elif "ai coding" in lower or "developer" in lower or "hiring" in lower:
-        return json.dumps({
-            "sub_questions": [
-                "How have entry-level software engineering job postings and hiring volumes changed from 2024 to 2026?",
-                "What new technical skill requirements (code review, AI orchestration, system design) are expected of junior engineers?",
-                "How do engineering organizations measure junior developer productivity when using AI coding assistants?",
-                "What are the long-term workforce risks of reduced junior hiring on senior engineering talent pipelines?"
-            ]
-        })
-    else:
-        return json.dumps({
-            "sub_questions": [
-                f"What is the historical background, core definition, and current state of {topic}?",
-                f"What are the primary technical trade-offs, benchmarks, and economic factors in {topic}?",
-                f"What recent breakthroughs, standards, or empirical developments occurred in {topic} by 2026?",
-                f"What are the major challenges, risks, and projected future trajectories for {topic}?"
-            ]
-        })
+    """Generic, topic-parametrised MOCK plan (no domain keyword routing, so it can never be off-topic)."""
+    return json.dumps({
+        "sub_questions": [
+            f"What are the definition, scope and background of: {topic}?",
+            f"What are the key comparisons, metrics or evidence relevant to: {topic}?",
+            f"What recent developments or empirical findings exist regarding: {topic}?",
+            f"What are the main limitations, risks and open questions for: {topic}?",
+        ]
+    })
+
+
+def _valid_plan(data: Dict[str, Any]) -> bool:
+    sq = data.get("sub_questions")
+    return isinstance(sq, list) and len([q for q in sq if str(q).strip()]) >= 2
 
 
 def plan_research(state: ResearchState) -> Dict[str, Any]:
-    """
-    Decompose the user topic into 3-5 targeted research sub-questions.
-    Enforces strict JSON schema with a one-shot repair loop.
-    """
+    """Decompose the user topic into 3-5 targeted research sub-questions (strict JSON + one repair)."""
     topic = state.get("question", "").strip()
 
     system_instruction = (
-        "You are an expert academic research director. Your task is to break down a complex "
-        "research topic into 3 to 5 distinct, highly answerable, orthogonal sub-questions.\n"
-        "STRICT REQUIREMENT: You must respond ONLY with a JSON object in this exact schema:\n"
+        "You are an expert academic research director. Break down a complex research topic into 3 to 5 "
+        "distinct, highly answerable, orthogonal sub-questions that all stay on the stated topic.\n"
+        "STRICT REQUIREMENT: respond ONLY with a JSON object in this exact schema:\n"
         "{\n"
         '  "sub_questions": [\n'
         '    "First specific sub-question...",\n'
@@ -87,27 +68,23 @@ def plan_research(state: ResearchState) -> Dict[str, Any]:
         "}\n"
         "Do not include any conversational filler, markdown formatting, or preamble."
     )
-
     prompt = f"Deconstruct this research topic into 3-5 sub-questions:\nTopic: {topic}"
 
-    # First attempt
+    llm_calls: List[Dict[str, Any]] = []
     content, tokens = call_llm(
-        prompt=prompt,
-        system_instruction=system_instruction,
-        mock_generator=lambda p: _mock_plan_generator(topic),
+        prompt=prompt, system_instruction=system_instruction,
+        mock_generator=lambda p: _mock_plan_generator(topic), node="planner",
     )
+    llm_calls.append(usage_record("planner", tokens))
 
     plan_data: Dict[str, Any] = {}
     parsed = False
-
     try:
         plan_data = _clean_and_parse_json(content)
-        if "sub_questions" in plan_data and isinstance(plan_data["sub_questions"], list) and len(plan_data["sub_questions"]) >= 2:
-            parsed = True
-    except Exception as exc:
+        parsed = _valid_plan(plan_data)
+    except Exception as exc:  # noqa: BLE001
         logger.warning("Initial JSON parsing failed: %s. Initiating one-shot JSON-repair.", exc)
 
-    # One-shot repair retry if needed
     if not parsed:
         repair_prompt = (
             f"The previous output was invalid JSON:\n{content}\n\n"
@@ -117,23 +94,26 @@ def plan_research(state: ResearchState) -> Dict[str, Any]:
         repair_content, repair_tokens = call_llm(
             prompt=repair_prompt,
             system_instruction="You are a strict JSON repair engine. Output valid JSON only.",
-            mock_generator=lambda p: _mock_plan_generator(topic),
+            mock_generator=lambda p: _mock_plan_generator(topic), node="planner_repair",
         )
-        tokens["prompt_tokens"] += repair_tokens["prompt_tokens"]
-        tokens["completion_tokens"] += repair_tokens["completion_tokens"]
-        tokens["total_tokens"] += repair_tokens["total_tokens"]
-
+        llm_calls.append(usage_record("planner_repair", repair_tokens))
+        tokens = merge_usage(tokens, repair_tokens)
         try:
             plan_data = _clean_and_parse_json(repair_content)
-            if "sub_questions" in plan_data and isinstance(plan_data["sub_questions"], list):
-                parsed = True
-        except Exception:
-            # Fallback to mock plan
-            plan_data = _clean_and_parse_json(_mock_plan_generator(topic))
-            parsed = True
+            parsed = _valid_plan(plan_data)
+        except Exception:  # noqa: BLE001
+            parsed = False
 
-    sub_questions: List[str] = [str(q).strip() for q in plan_data.get("sub_questions", []) if str(q).strip()]
-    # Ensure 3-5 sub-questions
+    if not parsed:
+        if is_live_mode():
+            raise LLMUnavailableError("Planner returned invalid JSON after one repair attempt (no mock plan is substituted in LIVE mode).")
+        plan_data = _clean_and_parse_json(_mock_plan_generator(topic))
+
+    sub_questions: List[str] = []
+    for q in plan_data.get("sub_questions", []):
+        q = str(q).strip()
+        if q and q not in sub_questions:
+            sub_questions.append(q)
     if len(sub_questions) < 3:
         sub_questions.extend([
             f"What are key empirical findings regarding {topic}?",
@@ -141,24 +121,14 @@ def plan_research(state: ResearchState) -> Dict[str, Any]:
         ])
     sub_questions = sub_questions[:5]
 
-    # Print DEMO-READY terminal banner
-    banner = [
-        "",
-        "=" * 60,
-        "========== [1] PLANNER OUTPUT ==========",
-        "=" * 60,
-        f"Research Topic: {topic}",
-        f"Generated Sub-Questions ({len(sub_questions)} total):",
-    ]
+    banner = ["", "=" * 60, "========== [1] PLANNER OUTPUT ==========", "=" * 60,
+              f"Research Topic: {topic}", f"Generated Sub-Questions ({len(sub_questions)} total):"]
     for idx, sq in enumerate(sub_questions, 1):
         banner.append(f"  [{idx}] {sq}")
-    banner.append("=" * 60)
-    banner.append("")
+    banner += ["=" * 60, ""]
     print("\n".join(banner))
 
     return {
         "plan": sub_questions,
-        "metadata": {
-            "tokens_planner": tokens["total_tokens"],
-        },
+        "metadata": {"tokens_planner": tokens["total_tokens"], "llm_calls": llm_calls},
     }

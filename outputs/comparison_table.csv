@@ -1,11 +1,11 @@
-question,phase1_scores,phase2_scores,phase1_mean,phase2_mean,mean_delta,latency_p1,latency_p2,tokens_p1,tokens_p2,iterations_used
-Compare lithium-ion vs sodium-ion batteries for grid storage as of 2026,R:5 C:4 O:5 G:3,R:5 C:4 O:4 G:4,4.25,4.25,0.0,89.05,421.49,28687,96137,3
-Impact of AI coding assistants on junior developer hiring in 2026,N/A,N/A,0.0,0.0,-0.0,90.38,698.67,22391,22062,1
-Commercial viability and licensing status of Small Modular Reactors (SMRs) for data center power,N/A,N/A,0.0,0.0,-0.0,154.37,0.0,8739,0,0
-Post-quantum cryptography migration challenges for core banking and financial transaction protocols,N/A,N/A,0.0,0.0,-0.0,165.2,0.0,14846,0,0
-Current clinical pipeline and manufacturing constraints for mRNA therapeutics beyond vaccines,N/A,N/A,0.0,0.0,-0.0,154.5,0.0,8516,0,0
-Neuromorphic computing hardware architectures vs ultra-low-power GPUs for edge inference,N/A,N/A,0.0,0.0,-0.0,162.36,0.0,8092,0,0
-Levelized cost and thermodynamic limits of direct air capture (DAC) technologies at gigaton scale,N/A,N/A,0.0,0.0,-0.0,162.62,0.0,8485,0,0
-Deployment economics and safety certification of autonomous humanoid robots in automotive manufacturing,N/A,N/A,0.0,0.0,-0.0,150.73,0.0,9153,0,0
-Decentralized Physical Infrastructure Networks (DePIN) scalability limitations for wireless connectivity,N/A,N/A,0.0,0.0,-0.0,165.11,0.0,7434,0,0
-Degradation mechanisms and dendrite suppression strategies in all-solid-state lithium batteries,N/A,N/A,0.0,0.0,-0.0,151.83,0.0,8740,0,0
+question_id,question,p1_relevance,p2_relevance,p1_completeness,p2_completeness,p1_organization,p2_organization,p1_grounding,p2_grounding,p1_mean,p2_mean,mean_delta,p1_latency,p2_latency,p1_tokens,p2_tokens,p1_token_basis,p2_token_basis,p2_iterations,pair_valid,pair_note
+Q01,Compare lithium-ion vs sodium-ion batteries for grid storage as of 2026,5,N/A,4,N/A,5,N/A,3,N/A,4.25,N/A,N/A,89.05,421.49,28687,96137,legacy-unverified,legacy-unverified,3,False,"P2 run not clean (simulated_sources_in_live_report, token_total_inconsistent_with_node_tokens, metadata_incomplete_not_instrument_output)"
+Q02,Impact of AI coding assistants on junior developer hiring in 2026,N/A,N/A,N/A,N/A,N/A,N/A,N/A,N/A,N/A,N/A,N/A,90.38,698.67,22391,22062,legacy-unverified,legacy-unverified,2,False,P1 run is MOCK; P2 run is MOCK
+Q03,Commercial viability and licensing status of Small Modular Reactors (SMRs) for data center power,N/A,N/A,N/A,N/A,N/A,N/A,N/A,N/A,N/A,N/A,N/A,154.37,N/A,8739,N/A,legacy-unverified,N/A,N/A,False,P1 run is MOCK; P2 run missing
+Q04,Post-quantum cryptography migration challenges for core banking and financial transaction protocols,N/A,N/A,N/A,N/A,N/A,N/A,N/A,N/A,N/A,N/A,N/A,165.2,N/A,14846,N/A,legacy-unverified,N/A,N/A,False,P1 run is MOCK; P2 run missing
+Q05,Current clinical pipeline and manufacturing constraints for mRNA therapeutics beyond vaccines,N/A,N/A,N/A,N/A,N/A,N/A,N/A,N/A,N/A,N/A,N/A,154.5,N/A,8516,N/A,legacy-unverified,N/A,N/A,False,P1 run is MOCK; P2 run missing
+Q06,Neuromorphic computing hardware architectures vs ultra-low-power GPUs for edge inference,N/A,N/A,N/A,N/A,N/A,N/A,N/A,N/A,N/A,N/A,N/A,162.36,N/A,8092,N/A,legacy-unverified,N/A,N/A,False,P1 run is MOCK; P2 run missing
+Q07,Levelized cost and thermodynamic limits of direct air capture (DAC) technologies at gigaton scale,N/A,N/A,N/A,N/A,N/A,N/A,N/A,N/A,N/A,N/A,N/A,162.62,N/A,8485,N/A,legacy-unverified,N/A,N/A,False,P1 run is MOCK; P2 run missing
+Q08,Deployment economics and safety certification of autonomous humanoid robots in automotive manufacturing,N/A,N/A,N/A,N/A,N/A,N/A,N/A,N/A,N/A,N/A,N/A,150.73,N/A,9153,N/A,legacy-unverified,N/A,N/A,False,P1 run is MOCK; P2 run missing
+Q09,Decentralized Physical Infrastructure Networks (DePIN) scalability limitations for wireless connectivity,N/A,N/A,N/A,N/A,N/A,N/A,N/A,N/A,N/A,N/A,N/A,165.11,N/A,7434,N/A,legacy-unverified,N/A,N/A,False,P1 run is MOCK; P2 run missing
+Q10,Degradation mechanisms and dendrite suppression strategies in all-solid-state lithium batteries,N/A,N/A,N/A,N/A,N/A,N/A,N/A,N/A,N/A,N/A,N/A,151.83,N/A,8740,N/A,legacy-unverified,N/A,N/A,False,P1 run is MOCK; P2 run missing

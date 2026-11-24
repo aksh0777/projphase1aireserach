@@ -1,156 +1,102 @@
 """
 Evaluation Comparison Engine: Phase 1 Baseline vs Phase 2 Critic Loop
-Architecture Reference: docs/EXPLANATIONS.md - Section 12
+Architecture Reference: docs/EXPLANATIONS.md - Section 12 and Chapter 13
 
-Loads Phase 1 and Phase 2 evaluation artifacts, joins on research question,
-calculates rubric score deltas, latency overhead, and token efficiency,
-and exports the empirical comparison table to outputs/comparison_table.csv.
+Joins Phase 1 and Phase 2 evaluations on stable benchmark IDs (Q01..Q10).
+Produces outputs/comparison_table.csv and prints the empirical comparison matrix.
+Calculates deltas and aggregates ONLY over valid paired evaluations.
+Missing scores remain None / 'N/A' (never converted to 0).
 """
 
-import csv
-import json
 import os
 import sys
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
+
+# Ensure project root is in sys.path
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
+from eval.data import (
+    DataPaths,
+    build_comparison,
+    comparison_csv_text,
+)
 
 
-def load_csv_scores(csv_path: str) -> Dict[str, Dict[str, Any]]:
-    """Load latest evaluation scores keyed by normalized question string."""
-    scores_by_q: Dict[str, Dict[str, Any]] = {}
-    if not os.path.exists(csv_path):
-        return scores_by_q
+def run_comparison(output_csv: str = "outputs/comparison_table.csv", allow_flagged: bool = False) -> Dict[str, Any]:
+    """Build comparison table, export CSV, and print academic matrix."""
+    paths = DataPaths()
+    comp = build_comparison(paths=paths, allow_flagged=allow_flagged)
+    rows = comp["rows"]
+    agg = comp["aggregates"]
+    counts = comp["counts"]
 
-    with open(csv_path, "r", encoding="utf-8") as f:
-        reader = csv.DictReader(f)
-        for row in reader:
-            q = row.get("Question", "").strip()
-            if q:
-                scores_by_q[q] = {
-                    "relevance": float(row.get("Relevance", 0)),
-                    "completeness": float(row.get("Completeness", 0)),
-                    "organization": float(row.get("Organization", 0)),
-                    "grounding": float(row.get("Grounding", 0)),
-                    "mean_score": float(row.get("Mean_Score", 0)),
-                    "justification": row.get("Justification", ""),
-                    "report_path": row.get("Report_Path", ""),
-                }
-    return scores_by_q
-
-
-def load_jsonl_telemetry(jsonl_path: str) -> Dict[str, Dict[str, Any]]:
-    """Load latest run telemetry (latency, tokens, iterations) keyed by question."""
-    telemetry_by_q: Dict[str, Dict[str, Any]] = {}
-    if not os.path.exists(jsonl_path):
-        return telemetry_by_q
-
-    with open(jsonl_path, "r", encoding="utf-8") as f:
-        for line in f:
-            if not line.strip():
-                continue
-            try:
-                rec = json.loads(line)
-                q = rec.get("question", "").strip()
-                if q:
-                    telemetry_by_q[q] = {
-                        "latency": float(rec.get("latency", 0)),
-                        "tokens": int(rec.get("tokens", 0)),
-                        "iterations_used": int(rec.get("iterations_used", 0)),
-                        "report_path": rec.get("report_path", ""),
-                    }
-            except Exception:
-                continue
-    return telemetry_by_q
-
-
-def build_comparison_table(
-    p1_csv: str = "outputs/eval_results.csv",
-    p1_jsonl: str = "outputs/eval_runs.jsonl",
-    p2_csv: str = "outputs/eval_results_phase2.csv",
-    p2_jsonl: str = "outputs/eval_runs_phase2.jsonl",
-    output_csv: str = "outputs/comparison_table.csv",
-) -> List[Dict[str, Any]]:
-    """Produce structured Phase 1 vs Phase 2 comparative matrix."""
-    p1_scores = load_csv_scores(p1_csv)
-    p1_telemetry = load_jsonl_telemetry(p1_jsonl)
-
-    p2_scores = load_csv_scores(p2_csv)
-    p2_telemetry = load_jsonl_telemetry(p2_jsonl)
-
-    # Collect union of all questions
-    all_questions = list(dict.fromkeys(
-        list(p1_scores.keys()) + list(p2_scores.keys()) +
-        list(p1_telemetry.keys()) + list(p2_telemetry.keys())
-    ))
-
-    rows: List[Dict[str, Any]] = []
-
-    for q in all_questions:
-        s1 = p1_scores.get(q, {})
-        t1 = p1_telemetry.get(q, {})
-        s2 = p2_scores.get(q, {})
-        t2 = p2_telemetry.get(q, {})
-
-        m1 = s1.get("mean_score", 0.0)
-        m2 = s2.get("mean_score", 0.0)
-        delta = round(m2 - m1, 2) if (m1 > 0 and m2 > 0) else round(m2 or (-m1), 2)
-
-        p1_scores_str = f"R:{int(s1.get('relevance', 0))} C:{int(s1.get('completeness', 0))} O:{int(s1.get('organization', 0))} G:{int(s1.get('grounding', 0))}" if s1 else "N/A"
-        p2_scores_str = f"R:{int(s2.get('relevance', 0))} C:{int(s2.get('completeness', 0))} O:{int(s2.get('organization', 0))} G:{int(s2.get('grounding', 0))}" if s2 else "N/A"
-
-        row = {
-            "question": q,
-            "phase1_scores": p1_scores_str,
-            "phase2_scores": p2_scores_str,
-            "phase1_mean": m1,
-            "phase2_mean": m2,
-            "mean_delta": delta,
-            "latency_p1": t1.get("latency", 0.0),
-            "latency_p2": t2.get("latency", 0.0),
-            "tokens_p1": t1.get("tokens", 0),
-            "tokens_p2": t2.get("tokens", 0),
-            "iterations_used": t2.get("iterations_used", 0),
-        }
-        rows.append(row)
-
-    # Save to CSV
+    # Export CSV
     os.makedirs(os.path.dirname(output_csv), exist_ok=True)
-    with open(output_csv, "w", newline="", encoding="utf-8") as f:
-        fieldnames = [
-            "question",
-            "phase1_scores",
-            "phase2_scores",
-            "phase1_mean",
-            "phase2_mean",
-            "mean_delta",
-            "latency_p1",
-            "latency_p2",
-            "tokens_p1",
-            "tokens_p2",
-            "iterations_used",
-        ]
-        writer = csv.DictWriter(f, fieldnames=fieldnames)
-        writer.writeheader()
-        writer.writerows(rows)
+    with open(output_csv, "w", encoding="utf-8") as f:
+        f.write(comparison_csv_text(rows))
 
-    # Print formatted console report
-    print("\n" + "=" * 110)
+    # Print Formatted Comparison Matrix
+    print("\n" + "=" * 115)
     print("========== PHASE 1 (BASELINE) VS PHASE 2 (CRITIC LOOP) COMPARISON MATRIX ==========")
-    print("=" * 110)
-    print(f"{'#':<3} | {'Question':<38} | {'P1 Scores':<16} | {'P2 Scores':<16} | {'Delta':<6} | {'Lat P1':<7} | {'Lat P2':<7} | {'Iters':<5}")
-    print("-" * 110)
+    print("=" * 115)
+    header = (
+        f"{'ID':<4} | {'Question':<38} | {'P1 (R/C/O/G)':<16} | {'P2 (R/C/O/G)':<16} | "
+        f"{'P1 Mean':<7} | {'P2 Mean':<7} | {'Delta':<6} | {'Iters':<5} | {'Note':<15}"
+    )
+    print(header)
+    print("-" * 115)
 
-    for idx, r in enumerate(rows, 1):
-        q_disp = (r['question'][:35] + "...") if len(r['question']) > 35 else r['question']
-        d_str = f"+{r['mean_delta']}" if r['mean_delta'] > 0 else f"{r['mean_delta']}"
+    for r in rows:
+        bid = r["question_id"]
+        q_disp = (r["question"][:35] + "...") if len(r["question"]) > 35 else r["question"]
+
+        def fmt_scores(tag):
+            if r.get(f"{tag}_mean") is None:
+                return "N/A"
+            return f"{r.get(f'{tag}_relevance')}/{r.get(f'{tag}_completeness')}/{r.get(f'{tag}_organization')}/{r.get(f'{tag}_grounding')}"
+
+        p1_sc = fmt_scores("p1")
+        p2_sc = fmt_scores("p2")
+        m1 = f"{r['p1_mean']:.2f}" if r.get("p1_mean") is not None else "N/A"
+        m2 = f"{r['p2_mean']:.2f}" if r.get("p2_mean") is not None else "N/A"
+        d_str = (f"+{r['mean_delta']:.2f}" if r["mean_delta"] > 0 else f"{r['mean_delta']:.2f}") if r.get("mean_delta") is not None else "N/A"
+        iters = str(r.get("p2_iterations") or "0")
+        note = r.get("pair_note", "")[:18]
+
         print(
-            f"{idx:<3} | {q_disp:<38} | {r['phase1_scores']:<16} | {r['phase2_scores']:<16} | "
-            f"{d_str:<6} | {r['latency_p1']:<6.1f}s | {r['latency_p2']:<6.1f}s | {r['iterations_used']:<5}"
+            f"{bid:<4} | {q_disp:<38} | {p1_sc:<16} | {p2_sc:<16} | "
+            f"{m1:<7} | {m2:<7} | {d_str:<6} | {iters:<5} | {note:<18}"
         )
 
-    print("=" * 110)
-    print(f"Comparison saved to: {output_csv}\n")
-    return rows
+    print("=" * 115)
+    print(f"Comparison table saved to: {output_csv}\n")
+
+    # Print Aggregate Statistics
+    n = agg["valid_pairs"]
+    print("=== AGGREGATE EXPERIMENTAL METRICS ===")
+    print(f"Total benchmark questions:             {counts['total_questions']}")
+    print(f"Valid paired LIVE evaluations:        {n} of {counts['total_questions']}")
+    if n > 0:
+        print(f"Phase 1 average quality:              {agg['avg_p1_quality']:.2f} / 5.0")
+        print(f"Phase 2 average quality:              {agg['avg_p2_quality']:.2f} / 5.0")
+        impr = agg['avg_improvement']
+        print(f"Average quality improvement (delta):   {'+' if impr >= 0 else ''}{impr:.2f}")
+        print(f"Questions improved / tied / worse:    {agg['pct_improved']}% / {agg['pct_unchanged']}% / {agg['pct_deteriorated']}%")
+        print(f"Phase 1 average latency:              {agg['avg_p1_latency']:.2f}s")
+        print(f"Phase 2 average latency:              {agg['avg_p2_latency']:.2f}s (Overhead: +{agg['latency_overhead']}s, +{agg['latency_overhead_pct']}%)")
+        if agg["valid_pairs_for_tokens"] > 0:
+            print(f"Phase 1 average actual tokens:        {agg['avg_p1_tokens']:.0f}")
+            print(f"Phase 2 average actual tokens:        {agg['avg_p2_tokens']:.0f} (Overhead: +{agg['token_overhead']:.0f}, +{agg['token_overhead_pct']}%)")
+        else:
+            print("Token consumption comparison:         N/A (legacy runs lacked verified token telemetry)")
+    else:
+        print("Note: No benchmark questions have verified LIVE evaluations in BOTH Phase 1 and Phase 2.")
+        print("Aggregate delta and cost statistics require valid paired LIVE evaluations.")
+
+    print("======================================\n")
+    return comp
 
 
 if __name__ == "__main__":
-    build_comparison_table()
+    allow_flagged = "--allow-flagged" in sys.argv
+    run_comparison(allow_flagged=allow_flagged)
