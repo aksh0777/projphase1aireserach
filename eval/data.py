@@ -73,11 +73,23 @@ def _ts(value: Optional[str]) -> float:
 
 
 def read_text(path: str) -> Optional[str]:
-    try:
-        with open(path, "r", encoding="utf-8") as f:
-            return f.read()
-    except OSError:
+    if not path:
         return None
+    # Normalize Windows backslashes so paths work across Linux containers
+    norm = path.replace("\\", "/")
+    candidates = [
+        norm,
+        os.path.normpath(norm),
+        os.path.join("outputs", os.path.basename(norm)),
+        os.path.join("outputs", "phase1_baseline", os.path.basename(norm)),
+    ]
+    for cand in candidates:
+        try:
+            with open(cand, "r", encoding="utf-8") as f:
+                return f.read()
+        except OSError:
+            continue
+    return None
 
 
 def is_mock_text(text: str) -> bool:

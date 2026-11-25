@@ -187,17 +187,16 @@ def execute_run(
 
     with run_llm_context(api_key=api_key, force_mock=force_mock):
         live_intent = is_live_mode()
-
-    started_at = datetime.now(timezone.utc).isoformat()
-    t0 = time.perf_counter()
-    error = ""
-    try:
-        for event in graph.stream(state, config=config, stream_mode="updates"):
-            if on_event:
-                on_event(event)
-    except Exception as exc:  # noqa: BLE001 - recorded as FAILED, never swallowed silently
-        error = f"{type(exc).__name__}: {str(exc)[:400]}"
-    latency = time.perf_counter() - t0
+        started_at = datetime.now(timezone.utc).isoformat()
+        t0 = time.perf_counter()
+        error = ""
+        try:
+            for event in graph.stream(state, config=config, stream_mode="updates"):
+                if on_event:
+                    on_event(event)
+        except Exception as exc:  # noqa: BLE001 - recorded as FAILED, never swallowed silently
+            error = f"{type(exc).__name__}: {str(exc)[:400]}"
+        latency = time.perf_counter() - t0
 
     try:
         final_state = dict(graph.get_state(config).values)

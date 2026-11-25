@@ -61,6 +61,44 @@ def _simulated_search(query: str, max_results: int) -> List[Dict[str, str]]:
     ][:max_results]
 
 
+def _wikipedia_search(query: str, max_results: int = 5) -> List[Dict[str, str]]:
+    """Live open search fallback via Wikipedia API when DuckDuckGo is rate-limited on cloud IPs."""
+    import re
+    import urllib.parse
+    import requests
+
+    try:
+        url = (
+            "https://en.wikipedia.org/w/api.php?action=query&list=search"
+            f"&srsearch={urllib.parse.quote(query)}&format=json&utf8=1&srlimit={max_results}"
+        )
+        headers = {"User-Agent": "MultiAgentDeepResearch/2.0 (academic research project; contact: github.com/aksh0777)"}
+        resp = requests.get(url, headers=headers, timeout=6.0)
+        if resp.status_code != 200:
+            return []
+        data = resp.json()
+        results: List[Dict[str, str]] = []
+        for item in data.get("query", {}).get("search", []):
+            title = str(item.get("title", "")).strip()
+            if not title:
+                continue
+            page_slug = urllib.parse.quote(title.replace(" ", "_"))
+            page_url = f"https://en.wikipedia.org/wiki/{page_slug}"
+            snippet_raw = str(item.get("snippet", ""))
+            snippet_clean = re.sub(r"<[^>]+>", "", snippet_raw).strip()
+            if snippet_clean:
+                results.append({
+                    "title": title,
+                    "url": page_url,
+                    "snippet": snippet_clean,
+                    "provenance": "live",
+                })
+        return results[:max_results]
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("Wikipedia live fallback search failed for '%s': %s", query, exc)
+        return []
+
+
 def search_web(
     query: str,
     max_results: int = 5,
@@ -85,6 +123,7 @@ def search_web(
     if simulate_only:
         return _simulated_search(clean_query, max_results)
 
+    # 1. Primary: DuckDuckGo search
     for attempt in range(1, max_retries + 1):
         try:
             if DDGS is not None:
@@ -110,6 +149,13 @@ def search_web(
         if attempt < max_retries:
             time.sleep(backoff_factor ** attempt)
 
+    # 2. Secondary Live Fallback: Wikipedia open search (avoids cloud datacenter IP blocks)
+    wiki_hits = _wikipedia_search(clean_query, max_results=max_results)
+    if wiki_hits:
+        logger.info("Using live Wikipedia search results for '%s' (%d hits)", clean_query, len(wiki_hits))
+        return wiki_hits
+
+    # 3. Explicit Mock Fallback
     if allow_simulated:
         logger.info("MOCK mode: using simulated placeholder sources for '%s'", clean_query)
         return _simulated_search(clean_query, max_results)

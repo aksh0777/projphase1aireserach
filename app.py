@@ -113,6 +113,7 @@ if raw_key:
         api_key = None
     else:
         api_key = raw_key
+        os.environ["GEMINI_API_KEY"] = api_key
 
 # -----------------------------------------------------------------------------
 # Sidebar Navigation & Global Controls
@@ -445,6 +446,10 @@ if nav_section == "🔬 Research Workspace":
             else:
                 st.metric("Searches Executed", f"{rec.get('searches', 0)}")
                 st.caption(f"Search provenance: `{rec.get('search_provenance', 'live')}`")
+
+        # Transparent failure / error diagnosis
+        if rec.get("error"):
+            st.error(f"⚠️ **Execution Diagnostic:** {rec['error']}")
 
         # Phase 2 Draft History & Version Comparison
         if rec["phase"] == 2 and rec.get("final_draft_version") is not None:
